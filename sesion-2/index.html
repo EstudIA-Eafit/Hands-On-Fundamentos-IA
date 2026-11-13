@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Práctica de la sesión 2 de Fundamentos de IA: instrucciones con cinco partes, criterios para comparar resultados y tres caminos cuando algo falla.">
+<title>Sesión 2 · Fundamentos de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #faf6ee;
+  --superficie: #ffffff;
+  --hundido: #f1ebdf;
+  --tinta: #1c2430;
+  --suave: #4f5a6b;
+  --linea: #d5ccba;
+  --primario: #0f5e5a;
+  --primario-tinta: #ffffff;
+  --primario-suave: #dcefec;
+  --marcador: #ffe14d;
+  --marcador-tinta: #1c1a05;
+  --bien: #1b6e3c;
+  --bien-fondo: #d9f2e0;
+  --fallo: #ad3118;
+  --fallo-fondo: #fbded6;
+  --aviso-fondo: #fff4c7;
+  --sombra: 0 1px 2px rgba(28, 36, 48, .06), 0 6px 20px rgba(28, 36, 48, .06);
+  --titulos: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #12171d;
+    --superficie: #1b222b;
+    --hundido: #151b22;
+    --tinta: #eef1f5;
+    --suave: #aab4c3;
+    --linea: #364150;
+    --primario: #74d9cf;
+    --primario-tinta: #082422;
+    --primario-suave: #17393a;
+    --marcador: #f5d63a;
+    --marcador-tinta: #1c1a05;
+    --bien: #7fdc9f;
+    --bien-fondo: #173d27;
+    --fallo: #ff9d85;
+    --fallo-fondo: #4a2018;
+    --aviso-fondo: #3a3211;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font-family: var(--texto); font-size: 1rem; line-height: 1.55;
+}
+h1, h2, h3 { font-family: var(--titulos); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0 0 .8rem; }
+a { color: var(--primario); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 3px; border-radius: 6px; }
+h2:focus, h3:focus { outline: none; }
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.ancho { max-width: 44rem; margin: 0 auto; padding: 0 1rem; }
+
+/* Encabezados */
+.cabecera { padding: 1.1rem 0 .4rem; }
+.volver { margin: 0 0 .7rem; font-size: .95rem; }
+.volver a { display: inline-block; padding: .3rem 0; font-weight: 700; text-decoration: none; }
+.volver a:hover { text-decoration: underline; }
+.sobretitulo {
+  font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--suave); font-weight: 700; margin: 0 0 .3rem;
+}
+.cabecera h1 { font-size: clamp(1.5rem, 6vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; }
+.barra { padding: .7rem 0 .5rem; }
+.barra .ancho { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .9rem; }
+.barra a { font-weight: 700; text-decoration: none; padding: .3rem 0; }
+.barra a:hover { text-decoration: underline; }
+.barra span { color: var(--suave); font-weight: 700; font-size: .93rem; }
+
+/* Navegación de pasos */
+.pasos {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--fondo); border-bottom: 1px solid var(--linea); padding: .5rem 0;
+}
+.pasos ol { list-style: none; margin: 0; padding: 0; display: flex; gap: .4rem; }
+.pasos li { flex: 0 0 auto; min-width: 0; }
+.pasos li.actual { flex: 1 1 auto; }
+.pasos a {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 3rem; padding: .35rem .6rem .35rem .4rem;
+  border-radius: 999px; border: 1px solid var(--linea);
+  background: var(--superficie); color: var(--tinta); text-decoration: none;
+}
+.pasos .num {
+  flex: none; width: 2rem; height: 2rem; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700;
+  background: var(--hundido); color: var(--tinta);
+}
+.pasos .txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.pasos .nom { font-weight: 700; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pasos .tmp { font-size: .76rem; color: var(--suave); white-space: nowrap; }
+.pasos li.hecho .num { background: var(--primario-suave); color: var(--primario); }
+.pasos li.actual a { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.pasos li.actual .num { background: var(--primario-tinta); color: var(--primario); }
+.pasos li.actual .tmp { color: inherit; opacity: .9; }
+@media (max-width: 43.99rem) {
+  .pasos ol { align-items: stretch; }
+  .pasos a { height: 100%; border-radius: 16px; }
+  .pasos li.actual a { padding: .35rem .5rem .35rem .4rem; gap: .4rem; }
+  .pasos li.actual .nom { white-space: normal; overflow: visible; font-size: .82rem; }
+  .pasos li:not(.actual) a { flex-direction: column; justify-content: center; gap: .1rem; padding: .3rem .2rem; min-width: 2.8rem; }
+  .pasos li:not(.actual) .num { width: 1.6rem; height: 1.6rem; font-size: .9rem; }
+  .pasos li:not(.actual) .tmp { font-size: .7rem; }
+  .pasos li:not(.actual) .nom {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+}
+@media (min-width: 44rem) {
+  .pasos li, .pasos li.actual { flex: 1 1 0; }
+  .pasos .nom { white-space: normal; }
+}
+
+/* Contenido */
+main { padding: 1.2rem 0 1rem; }
+.paso-cab { margin-bottom: 1rem; }
+.paso-cab .meta { color: var(--suave); font-weight: 700; font-size: .88rem; margin: 0 0 .2rem; }
+.paso-cab h2 { font-size: clamp(1.45rem, 5.5vw, 1.85rem); font-weight: 800; }
+.paso-cab p { margin: .5rem 0 0; color: var(--suave); }
+h3 { font-size: 1.18rem; font-weight: 600; margin-bottom: .5rem; }
+
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
+}
+.tarjeta > :last-child { margin-bottom: 0; }
+.tarjeta ol, .tarjeta ul { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.tarjeta li { margin-bottom: .25rem; }
+
+.nota {
+  background: var(--aviso-fondo); border-left: 5px solid var(--marcador);
+  border-radius: 10px; padding: .75rem .9rem; margin-bottom: 1rem;
+}
+.nota > :last-child { margin-bottom: 0; }
+.cita {
+  margin: 0 0 .8rem; padding: .8rem .95rem; background: var(--hundido);
+  border-radius: 14px; border: 1px dashed var(--linea); font-style: italic;
+}
+.cierre {
+  font-family: var(--titulos); font-weight: 600; font-size: 1.12rem; line-height: 1.3;
+  border-left: 5px solid var(--marcador); padding: .3rem 0 .3rem .8rem; margin: 0 0 .8rem;
+}
+.rotulo {
+  display: inline-block; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--marcador); color: var(--marcador-tinta); border-radius: 6px; padding: .2rem .5rem; margin-bottom: .5rem;
+}
+.parte {
+  font-weight: 700; background: var(--marcador); color: var(--marcador-tinta);
+  border-radius: 5px; padding: .05rem .35rem; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  border: 2px solid var(--primario); background: var(--primario); color: var(--primario-tinta);
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;
+}
+.boton.claro { background: transparent; color: var(--primario); }
+.boton:active { transform: translateY(1px); }
+.fila { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: .8rem; }
+.estado { color: var(--suave); font-size: .95rem; margin: 0 0 .8rem; }
+.estado:empty { display: none; }
+
+/* Campos */
+.campo { margin-bottom: .9rem; }
+.campo > label { display: block; font-weight: 700; margin-bottom: .3rem; }
+.ayuda { display: block; font-weight: 400; color: var(--suave); font-size: .93rem; }
+textarea, select {
+  width: 100%; font: inherit; color: var(--tinta); background: var(--fondo);
+  border: 2px solid var(--linea); border-radius: 12px; padding: .6rem .7rem;
+}
+textarea { min-height: 5.2rem; resize: vertical; }
+textarea.alto { min-height: 9rem; }
+select { min-height: 3rem; }
+textarea:focus-visible, select:focus-visible { border-color: var(--primario); outline-offset: 1px; }
+textarea::placeholder { color: var(--suave); opacity: .85; }
+fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: .4rem; }
+.cuenta { color: var(--suave); font-size: .93rem; font-weight: 700; margin: .3rem 0 0; }
+
+.opciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.opciones label { position: relative; display: block; flex: 1 1 auto; cursor: pointer; }
+.opciones input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opciones span {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 2.9rem; padding: .45rem .9rem; border-radius: 12px;
+  border: 2px solid var(--linea); background: var(--superficie); font-weight: 700;
+}
+.opciones input:checked + span { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.opciones input:focus-visible + span { outline: 3px solid var(--primario); outline-offset: 3px; }
+
+.casilla {
+  display: flex; gap: .7rem; align-items: flex-start; cursor: pointer;
+  padding: .65rem .8rem; border: 2px solid var(--linea); border-radius: 14px;
+  background: var(--superficie); font-weight: 700; margin-bottom: .5rem;
+}
+.casilla input { flex: none; width: 1.5rem; height: 1.5rem; margin: .1rem 0 0; accent-color: var(--primario); }
+
+.salida {
+  white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0 0 .8rem;
+  background: var(--hundido); border: 1px dashed var(--linea); border-radius: 12px;
+  padding: .8rem .9rem; -webkit-user-select: text; user-select: text;
+}
+.salida.vacia { color: var(--suave); font-style: italic; }
+.salida p { margin: 0 0 .55rem; white-space: pre-wrap; }
+.salida p:last-child { margin-bottom: 0; }
+
+/* Portada */
+.ideas { margin: 0 0 1.2rem; padding-left: 1.2rem; }
+.ideas li { margin-bottom: .4rem; }
+.menu { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 1rem; }
+.lab {
+  position: relative; background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; box-shadow: var(--sombra);
+}
+.lab:hover, .lab:focus-within { border-color: var(--primario); }
+.lab h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: .35rem; }
+.lab h3 a { color: inherit; text-decoration: none; }
+.lab h3 a::after { content: ""; position: absolute; inset: 0; border-radius: 18px; }
+.lab p { margin-bottom: .5rem; }
+.lab .datos { color: var(--suave); font-size: .93rem; font-weight: 700; margin-bottom: .9rem; }
+.lab .abrir {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  background: var(--primario); color: var(--primario-tinta); font-weight: 700;
+}
+
+/* Comparación antes y después */
+.comparar { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.comparar .tarjeta { margin: 0; }
+@media (min-width: 40rem) { .comparar { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+/* Criterios */
+.criterio h3 { font-family: var(--texto); font-size: 1rem; font-weight: 700; line-height: 1.4; margin-bottom: .7rem; }
+.lado { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .7rem; margin-bottom: .6rem; }
+.lado:last-child { margin-bottom: 0; }
+.lado .quien { font-weight: 700; min-width: 6.4rem; }
+.lado .opciones { flex: 1 1 14rem; }
+.auto {
+  flex: 1 1 14rem; font-weight: 700; padding: .55rem .8rem; border-radius: 12px;
+  border: 2px dashed var(--linea); color: var(--suave);
+}
+.auto.cumple { background: var(--bien-fondo); border: 2px solid var(--bien); color: var(--tinta); }
+.auto.nocumple { background: var(--fallo-fondo); border: 2px solid var(--fallo); color: var(--tinta); }
+details { margin-bottom: .6rem; }
+summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .45rem 0; }
+.puntajes { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1rem; }
+.puntajes div { background: var(--primario-suave); border-radius: 14px; padding: .7rem .8rem; text-align: center; }
+.puntajes b { display: block; font-family: var(--titulos); font-weight: 800; font-size: 1.7rem; line-height: 1.1; }
+.caminos { list-style: none; padding: 0 !important; display: grid; gap: .6rem; }
+.caminos li { border-left: 5px solid var(--primario); background: var(--primario-suave); border-radius: 10px; padding: .6rem .85rem; margin: 0; }
+.caminos b { font-family: var(--titulos); font-weight: 600; display: block; }
+
+/* Pie */
+.avance { display: flex; justify-content: space-between; gap: .6rem; margin: 1.4rem 0 1rem; }
+.avance .boton { min-width: 8rem; }
+.avance .derecha { margin-left: auto; }
+.pie { border-top: 1px solid var(--linea); padding: 1rem 0 2rem; color: var(--suave); font-size: .92rem; }
+.pie p { margin: 0 0 .4rem; }
+.enlace {
+  font: inherit; color: var(--suave); background: none; border: 0; padding: .4rem 0;
+  text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .vista { animation: entra .25s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<header class="cabecera" id="cabecera">
+  <div class="ancho">
+    <p class="volver"><a href="../index.html">‹ Todos los laboratorios</a></p>
+    <p class="sobretitulo">Fundamentos de IA · Sesión 2</p>
+    <h1>Práctica: instrucciones completas y criterios claros</h1>
+  </div>
+</header>
+
+<div class="barra" id="barra" hidden>
+  <div class="ancho">
+    <a href="#inicio">‹ Sesión 2</a>
+    <span id="barra-titulo"></span>
+  </div>
+</div>
+
+<nav class="pasos" id="nav" aria-label="Pasos" hidden>
+  <div class="ancho"><ol id="nav-pasos"></ol></div>
+</nav>
+
+<main class="ancho">
+
+  <!-- PORTADA -->
+  <section class="vista" data-vista="inicio" aria-labelledby="t-inicio">
+    <h2 id="t-inicio" class="oculto-visual" tabindex="-1">Inicio de la sesión 2</h2>
+    <p><strong>Las ideas de hoy</strong></p>
+    <ul class="ideas">
+      <li>Una buena instrucción tiene cinco partes: hechos, audiencia, tarea, restricciones y formato.</li>
+      <li>Los resultados se comparan con los mismos criterios, y cada criterio se puede comprobar.</li>
+      <li>Cuando algo falla hay tres caminos: revisar la instrucción, editar a mano o probar de nuevo. Ninguno garantiza el resultado.</li>
+    </ul>
+
+    <ul class="menu" aria-label="Partes de la práctica">
+      <li class="lab">
+        <span class="rotulo">Parte 1 · Individual</span>
+        <h3><a href="#laboratorio">Laboratorio: de la petición vaga a la instrucción completa</a></h3>
+        <p class="datos">3 pasos · 30 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el laboratorio</span>
+      </li>
+      <li class="lab">
+        <span class="rotulo">Parte 2 · En parejas</span>
+        <h3><a href="#reto">Reto: misma instrucción, dos resultados, mismos criterios</a></h3>
+        <p class="datos">5 pasos · 40 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el reto</span>
+      </li>
+    </ul>
+
+    <div class="nota">
+      <p><strong>Deja tu IA abierta en otra pestaña</strong> (Gemini o ChatGPT). Tus respuestas en esta página se guardan solas.</p>
+    </div>
+  </section>
+
+  <!-- ============ PARTE 1: LABORATORIO ============ -->
+
+  <section class="vista" data-vista="laboratorio-1" aria-labelledby="t-l1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio · Paso 1 de 3 · 5 minutos</p>
+      <h2 id="t-l1" tabindex="-1">La petición vaga</h2>
+      <p>Empieza con una petición corta, como las que solemos escribir.</p>
+    </div>
+
+    <div class="tarjeta">
+      <blockquote class="cita" id="peticion-vaga">Escríbeme un mensaje para invitar a un cumpleaños</blockquote>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-vaga">Copiar</button>
+      </div>
+      <p class="estado" id="estado-vaga" aria-live="polite"></p>
+      <p>Envíala a tu IA tal cual y pega aquí lo que te respondió.</p>
+      <div class="campo">
+        <label for="l-r1">Respuesta de la IA a la petición vaga</label>
+        <textarea id="l-r1" class="alto" data-campo="lab.r1"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <fieldset>
+        <legend>¿Qué cosas supuso o inventó la IA?</legend>
+        <label class="casilla"><input type="checkbox" data-campo="lab.sup.nombre"><span>El nombre del cumpleañero</span></label>
+        <label class="casilla"><input type="checkbox" data-campo="lab.sup.fecha"><span>La fecha o la hora</span></label>
+        <label class="casilla"><input type="checkbox" data-campo="lab.sup.lugar"><span>El lugar</span></label>
+        <label class="casilla"><input type="checkbox" data-campo="lab.sup.tono"><span>El tono</span></label>
+        <label class="casilla"><input type="checkbox" data-campo="lab.sup.otro"><span>Otro</span></label>
+      </fieldset>
+      <div class="campo">
+        <label for="l-sup">Cuéntalo con tus palabras <span class="ayuda">¿Qué puso la IA que tú nunca le dijiste?</span></label>
+        <textarea id="l-sup" data-campo="lab.supTxt"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2" aria-labelledby="t-l2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio · Paso 2 de 3 · 15 minutos</p>
+      <h2 id="t-l2" tabindex="-1">Tu instrucción con las cinco partes</h2>
+      <p>Con estas cinco partes la IA tiene menos que suponer, y eso suele mejorar el resultado.</p>
+    </div>
+
+    <div class="nota">
+      <p>Puedes usar un cumpleaños real o inventarte los datos. <strong>No escribas información privada</strong>, como direcciones exactas o teléfonos.</p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="l-hechos"><span class="parte">Hechos</span> <span class="ayuda">Los datos reales del cumpleaños: de quién, cuándo, dónde, qué deben llevar.</span></label>
+        <textarea id="l-hechos" data-campo="lab.hechos" placeholder="Ej.: es el cumpleaños de Sofía, el sábado 14 de junio a las 4:00 p. m., en el salón comunal. Cada uno lleva algo para compartir."></textarea>
+      </div>
+      <div class="campo">
+        <label for="l-audiencia"><span class="parte">Audiencia</span> <span class="ayuda">Quiénes recibirán el mensaje. Sirve para ajustar el tono.</span></label>
+        <textarea id="l-audiencia" data-campo="lab.audiencia" placeholder="Ej.: mis compañeros de trabajo, que lo leerán en el grupo de WhatsApp"></textarea>
+      </div>
+      <div class="campo">
+        <label for="l-tarea"><span class="parte">Tarea</span> <span class="ayuda">Qué debe hacer la IA exactamente.</span></label>
+        <textarea id="l-tarea" data-campo="lab.tarea" placeholder="Ej.: redacta la invitación al cumpleaños"></textarea>
+      </div>
+      <div class="campo">
+        <label for="l-restricciones"><span class="parte">Restricciones</span> <span class="ayuda">Los límites: cuántas palabras, qué tono, qué no debe hacer.</span></label>
+        <textarea id="l-restricciones" data-campo="lab.restricciones" placeholder="Ej.: máximo 60 palabras, tono alegre y sin agregar datos que no te di"></textarea>
+      </div>
+      <div class="campo">
+        <label for="l-formato"><span class="parte">Formato</span> <span class="ayuda">Cómo debe entregarlo.</span></label>
+        <textarea id="l-formato" data-campo="lab.formato" placeholder="Ej.: un solo mensaje de WhatsApp, con la fecha, la hora y el lugar en líneas separadas"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Tu instrucción completa</h3>
+      <div class="salida vacia" id="instruccion" tabindex="0"></div>
+      <p class="estado" id="faltan" aria-live="polite"></p>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-instruccion">Copiar</button>
+      </div>
+      <p class="estado" id="estado-instruccion" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-3" aria-labelledby="t-l3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio · Paso 3 de 3 · 10 minutos</p>
+      <h2 id="t-l3" tabindex="-1">Antes y después</h2>
+      <p>Abre un chat nuevo, envía tu instrucción completa y pega aquí la nueva respuesta.</p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="l-r2">Respuesta de la IA a tu instrucción completa</label>
+        <textarea id="l-r2" class="alto" data-campo="lab.r2"></textarea>
+      </div>
+    </div>
+
+    <div class="comparar">
+      <div class="tarjeta">
+        <span class="rotulo">Antes: petición vaga</span>
+        <div class="salida vacia" id="ver-r1"></div>
+      </div>
+      <div class="tarjeta">
+        <span class="rotulo">Después: cinco partes</span>
+        <div class="salida vacia" id="ver-r2"></div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Verifica la segunda respuesta</h3>
+      <p>Una instrucción completa aumenta la probabilidad de un buen resultado, pero no lo garantiza. Compruébalo.</p>
+      <fieldset>
+        <legend>Usó mis datos reales</legend>
+        <div class="opciones">
+          <label><input type="radio" name="lab.ver.datos" value="Sí"><span>Sí</span></label>
+          <label><input type="radio" name="lab.ver.datos" value="No"><span>No</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>El tono le sirve a mi audiencia</legend>
+        <div class="opciones">
+          <label><input type="radio" name="lab.ver.tono" value="Sí"><span>Sí</span></label>
+          <label><input type="radio" name="lab.ver.tono" value="No"><span>No</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Respetó mis restricciones</legend>
+        <div class="opciones">
+          <label><input type="radio" name="lab.ver.restr" value="Sí"><span>Sí</span></label>
+          <label><input type="radio" name="lab.ver.restr" value="No"><span>No</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Vino en el formato que pedí</legend>
+        <div class="opciones">
+          <label><input type="radio" name="lab.ver.formato" value="Sí"><span>Sí</span></label>
+          <label><input type="radio" name="lab.ver.formato" value="No"><span>No</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="l-parte">¿Qué parte de la instrucción hizo la mayor diferencia?</label>
+        <select id="l-parte" data-campo="lab.parte">
+          <option value="">Elige una parte</option>
+          <option>Hechos</option>
+          <option>Audiencia</option>
+          <option>Tarea</option>
+          <option>Restricciones</option>
+          <option>Formato</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="l-parte-txt">¿Por qué?</label>
+        <textarea id="l-parte-txt" data-campo="lab.parteTxt"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Tu resumen</h3>
+      <pre class="salida" id="resumen-lab" tabindex="0"></pre>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-res-lab">Copiar</button>
+        <button type="button" class="boton claro" id="btn-descargar-lab">Descargar como .txt</button>
+      </div>
+      <p class="estado" id="estado-res-lab" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ============ PARTE 2: RETO ============ -->
+
+  <section class="vista" data-vista="reto-1" aria-labelledby="t-r1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Reto · Paso 1 de 5 · 5 minutos</p>
+      <h2 id="t-r1" tabindex="-1">El caso y la instrucción</h2>
+    </div>
+
+    <div class="nota">
+      <p><strong>Cómo se trabaja.</strong> <span data-solo="Trabajas por tu cuenta. Vas a enviar la misma instrucción dos veces, en dos chats nuevos de tu IA, y a comparar los dos intentos.">Están en una sala de Zoom de dos personas. Una persona comparte pantalla y llena esta página. La otra le envía su respuesta por el chat de la sala.</span></p>
+    </div>
+    <label class="casilla">
+      <input type="checkbox" id="r-solo" data-campo="reto.solo">
+      <span>Estoy trabajando solo</span>
+    </label>
+
+    <div class="tarjeta">
+      <h3>El caso</h3>
+      <p>Hay que avisar un corte de agua en el grupo de WhatsApp del edificio Los Cerezos.</p>
+      <h3>La instrucción</h3>
+      <p data-solo="Tiene las cinco partes. Envíala a tu IA sin cambiarle nada.">Tiene las cinco partes. Los dos deben enviarla a su IA sin cambiarle nada.</p>
+      <div class="salida" id="instruccion-reto" tabindex="0"></div>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-reto">Copiar la instrucción</button>
+      </div>
+      <p class="estado" id="estado-reto" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="reto-2" aria-labelledby="t-r2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Reto · Paso 2 de 5 · 5 minutos</p>
+      <h2 id="t-r2" tabindex="-1">Dos respuestas</h2>
+      <p data-solo="Envía la instrucción y pega la respuesta. Luego abre un chat nuevo, envíala otra vez y pega el segundo intento.">Cada uno envía la instrucción a su IA. Peguen aquí las dos respuestas, completas y sin corregirlas.</p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="r-a">Respuesta A <span class="ayuda" data-solo="Tu primer intento.">La de quien comparte pantalla.</span></label>
+        <textarea id="r-a" class="alto" data-campo="reto.a"></textarea>
+        <p class="cuenta" id="cuenta-a" aria-live="polite"></p>
+      </div>
+      <fieldset>
+        <legend>Herramienta usada en A</legend>
+        <div class="opciones">
+          <label><input type="radio" name="reto.ha" value="Gemini"><span>Gemini</span></label>
+          <label><input type="radio" name="reto.ha" value="ChatGPT"><span>ChatGPT</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="r-b">Respuesta B <span class="ayuda" data-solo="Tu segundo intento, en un chat nuevo.">La que llegó por el chat de la sala.</span></label>
+        <textarea id="r-b" class="alto" data-campo="reto.b"></textarea>
+        <p class="cuenta" id="cuenta-b" aria-live="polite"></p>
+      </div>
+      <fieldset>
+        <legend>Herramienta usada en B</legend>
+        <div class="opciones">
+          <label><input type="radio" name="reto.hb" value="Gemini"><span>Gemini</span></label>
+          <label><input type="radio" name="reto.hb" value="ChatGPT"><span>ChatGPT</span></label>
+        </div>
+      </fieldset>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="reto-3" aria-labelledby="t-r3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Reto · Paso 3 de 5 · 10 minutos</p>
+      <h2 id="t-r3" tabindex="-1">Los mismos criterios</h2>
+      <p data-solo="Revisa las dos respuestas con los mismos cinco criterios. Lee y comprueba; no adivines.">Revisen las dos respuestas con los mismos cinco criterios. Lean y comprueben; no adivinen.</p>
+    </div>
+
+    <details>
+      <summary>Ver la respuesta A</summary>
+      <div class="salida" id="ver-a"></div>
+    </details>
+    <details>
+      <summary>Ver la respuesta B</summary>
+      <div class="salida" id="ver-b"></div>
+    </details>
+
+    <div id="criterios"></div>
+
+    <p class="estado" id="faltan-criterios" aria-live="polite"></p>
+    <div class="tarjeta" id="puntaje" hidden>
+      <h3 id="t-puntaje" tabindex="-1">Puntaje</h3>
+      <div class="puntajes">
+        <div>Respuesta A<b id="puntos-a"></b></div>
+        <div>Respuesta B<b id="puntos-b"></b></div>
+      </div>
+      <p class="cierre" data-solo="Enviaste la misma instrucción dos veces y la IA respondió distinto. Eso es normal: la IA no responde igual dos veces.">Recibieron la misma instrucción y respondieron distinto. Eso es normal: la IA no responde igual dos veces.</p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="reto-4" aria-labelledby="t-r4" hidden>
+    <div class="paso-cab">
+      <p class="meta">Reto · Paso 4 de 5 · 15 minutos</p>
+      <h2 id="t-r4" tabindex="-1">Elige un camino</h2>
+      <p>Cuando una respuesta falla, hay tres caminos.</p>
+    </div>
+
+    <div class="tarjeta">
+      <ul class="caminos">
+        <li><b>Revisar la instrucción</b>Cuando faltó o quedó ambiguo algo que debíamos decir.</li>
+        <li><b>Editar a mano</b>Cuando está casi bien y corregirlo nosotros es más rápido.</li>
+        <li><b>Probar de nuevo</b>Cuando la instrucción estaba completa y la respuesta salió floja.</li>
+      </ul>
+    </div>
+
+    <div id="zona-caminos"></div>
+
+    <div class="tarjeta">
+      <h3 data-solo="Ejecuta al menos un camino">Ejecuten al menos un camino</h3>
+      <div class="campo">
+        <label for="r-hecho" data-solo="¿Qué hiciste?">¿Qué hicieron?</label>
+        <textarea id="r-hecho" data-campo="reto.hecho" placeholder="Ej.: agregamos a la instrucción que no pusiera saludo ni despedida y la enviamos otra vez"></textarea>
+      </div>
+      <div class="campo">
+        <label for="r-nuevo">El nuevo resultado</label>
+        <textarea id="r-nuevo" class="alto" data-campo="reto.nuevo"></textarea>
+        <p class="cuenta" id="cuenta-nuevo" aria-live="polite"></p>
+      </div>
+      <fieldset>
+        <legend>¿Mejoró?</legend>
+        <div class="opciones">
+          <label><input type="radio" name="reto.mejoro" value="Sí"><span>Sí</span></label>
+          <label><input type="radio" name="reto.mejoro" value="En parte"><span>En parte</span></label>
+          <label><input type="radio" name="reto.mejoro" value="No"><span>No</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="nota">
+      <p><strong data-solo="Ningún camino garantiza el resultado. Si no mejoró, también es un hallazgo: cuéntalo.">Ningún camino garantiza el resultado. Si no mejoró, también es un hallazgo: cuéntenlo.</strong></p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="reto-5" aria-labelledby="t-r5" hidden>
+    <div class="paso-cab">
+      <p class="meta">Reto · Paso 5 de 5 · 5 minutos</p>
+      <h2 id="t-r5" tabindex="-1">Para compartir</h2>
+      <p data-solo="Tres respuestas cortas para contarle al grupo.">Tres respuestas cortas para contarle al grupo.</p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="r-q1">¿En qué se diferenciaron las dos respuestas?</label>
+        <textarea id="r-q1" data-campo="reto.q1"></textarea>
+      </div>
+      <div class="campo">
+        <label for="r-q2" data-solo="¿Qué camino elegiste y por qué?">¿Qué camino eligieron y por qué?</label>
+        <textarea id="r-q2" data-campo="reto.q2"></textarea>
+      </div>
+      <div class="campo">
+        <label for="r-q3">¿Funcionó?</label>
+        <textarea id="r-q3" data-campo="reto.q3"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Resumen</h3>
+      <pre class="salida" id="resumen-reto" tabindex="0"></pre>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-res-reto">Copiar</button>
+        <button type="button" class="boton claro" id="btn-descargar-reto">Descargar como .txt</button>
+      </div>
+      <p class="estado" id="estado-res-reto" aria-live="polite"></p>
+    </div>
+
+    <div class="nota">
+      <p><strong data-solo="Cuando se cierren las salas, vuelve a la sala principal para la puesta en común.">Cuando se cierren las salas, vuelvan a la sala principal para la puesta en común.</strong></p>
+    </div>
+  </section>
+
+  <div class="avance" id="avance" hidden>
+    <button type="button" class="boton claro" id="btn-atras">Atrás</button>
+    <button type="button" class="boton derecha" id="btn-continuar">Continuar</button>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <p>Tus respuestas se guardan solo en este dispositivo. Esta página no se conecta a ninguna IA.</p>
+    <button type="button" class="enlace" id="btn-borrar">Borrar mis respuestas</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Contenido ---------- */
+  var CLAVE = 'laboratorio-ia-sesion-2';
+  var LIMITE = 80;
+  var PETICION_VAGA = 'Escríbeme un mensaje para invitar a un cumpleaños';
+  var PARTES = [
+    { k: 'hechos', n: 'Hechos' },
+    { k: 'audiencia', n: 'Audiencia' },
+    { k: 'tarea', n: 'Tarea' },
+    { k: 'restricciones', n: 'Restricciones' },
+    { k: 'formato', n: 'Formato' }
+  ];
+  var SUPUESTOS = [
+    { k: 'nombre', n: 'el nombre del cumpleañero' },
+    { k: 'fecha', n: 'la fecha o la hora' },
+    { k: 'lugar', n: 'el lugar' },
+    { k: 'tono', n: 'el tono' },
+    { k: 'otro', n: 'otro' }
+  ];
+  var VERIFICACION = [
+    { k: 'datos', n: 'Usó mis datos reales' },
+    { k: 'tono', n: 'El tono le sirve a mi audiencia' },
+    { k: 'restr', n: 'Respetó mis restricciones' },
+    { k: 'formato', n: 'Vino en el formato que pedí' }
+  ];
+  var INSTRUCCION_RETO = [
+    ['Hechos', 'en el edificio Los Cerezos habrá un corte de agua este sábado de 8:00 a. m. a 2:00 p. m. por el lavado de los tanques. Se recomienda recoger agua la noche anterior y dejar las llaves cerradas durante el corte.'],
+    ['Audiencia', 'los vecinos del edificio, entre ellos varios adultos mayores, que leerán el mensaje en el grupo de WhatsApp.'],
+    ['Tarea', 'redacta el aviso del corte de agua.'],
+    ['Restricciones', 'máximo 80 palabras, tono amable, sin tecnicismos y sin agregar datos que no te di.'],
+    ['Formato', 'un mensaje de WhatsApp con las recomendaciones en una lista corta.']
+  ];
+  var CRITERIOS = [
+    { id: 1, auto: true, t: 'Tiene ' + LIMITE + ' palabras o menos.' },
+    { id: 2, t: 'Dice el día y el horario correctos: sábado, de 8:00 a. m. a 2:00 p. m.' },
+    { id: 3, t: 'Menciona el motivo: lavado de los tanques.' },
+    { id: 4, t: 'Incluye las dos recomendaciones: recoger agua la noche anterior y dejar las llaves cerradas.' },
+    { id: 5, t: 'No agrega datos que no estaban en la instrucción (teléfonos, fechas, nombres u otros).' }
+  ];
+  var CAMINOS = ['Revisar la instrucción', 'Editar a mano', 'Probar de nuevo'];
+  var RUTAS = {
+    laboratorio: {
+      titulo: 'Laboratorio individual · 30 min',
+      pasos: [
+        { n: 'La petición vaga', t: '5 min' },
+        { n: 'Tu instrucción', t: '15 min' },
+        { n: 'Antes y después', t: '10 min' }
+      ]
+    },
+    reto: {
+      titulo: 'Reto en parejas · 40 min',
+      pasos: [
+        { n: 'El caso', t: '5 min' },
+        { n: 'Respuestas', t: '5 min' },
+        { n: 'Criterios', t: '10 min' },
+        { n: 'El camino', t: '15 min' },
+        { n: 'Compartir', t: '5 min' }
+      ]
+    }
+  };
+  var ESTADO_DE = { laboratorio: 'lab', reto: 'reto' };
+
+  /* ---------- Estado y guardado ---------- */
+  function inicial() {
+    return {
+      lab: {
+        paso: 1, r1: '',
+        sup: { nombre: false, fecha: false, lugar: false, tono: false, otro: false }, supTxt: '',
+        hechos: '', audiencia: '', tarea: '', restricciones: '', formato: '',
+        r2: '', ver: { datos: '', tono: '', restr: '', formato: '' }, parte: '', parteTxt: ''
+      },
+      reto: {
+        paso: 1, solo: false, a: '', b: '', ha: '', hb: '',
+        crit: { a2: '', b2: '', a3: '', b3: '', a4: '', b4: '', a5: '', b5: '' },
+        caminos: {
+          c1: { camino: '', porque: '' }, c2: { camino: '', porque: '' }, c3: { camino: '', porque: '' },
+          c4: { camino: '', porque: '' }, c5: { camino: '', porque: '' }
+        },
+        mejor: '', mejorPorque: '', hecho: '', nuevo: '', mejoro: '', q1: '', q2: '', q3: ''
+      }
+    };
+  }
+  function mezclar(base, g) {
+    Object.keys(base).forEach(function (k) {
+      if (base[k] && typeof base[k] === 'object') {
+        if (g[k] && typeof g[k] === 'object') mezclar(base[k], g[k]);
+      } else if (typeof g[k] === typeof base[k]) {
+        base[k] = g[k];
+      }
+    });
+    return base;
+  }
+  function cargar() {
+    var base = inicial();
+    try {
+      var crudo = window.localStorage.getItem(CLAVE);
+      if (!crudo) return base;
+      var g = JSON.parse(crudo);
+      if (g && typeof g === 'object') mezclar(base, g);
+    } catch (e) { /* sin almacenamiento: la página funciona igual */ }
+    return base;
+  }
+  function guardar() {
+    try { window.localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) { /* nada */ }
+  }
+  var estado = cargar();
+
+  function leer(ruta) {
+    return ruta.split('.').reduce(function (o, k) { return o == null ? undefined : o[k]; }, estado);
+  }
+  function escribir(ruta, v) {
+    var ks = ruta.split('.');
+    var o = estado;
+    for (var i = 0; i < ks.length - 1; i++) { o = o[ks[i]]; if (o == null) return; }
+    o[ks[ks.length - 1]] = v;
+  }
+
+  /* ---------- Utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function crear(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) e.className = clase;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  function todos(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
+  function o(v) { return v && String(v).trim() ? String(v).trim() : '(sin responder)'; }
+  function t(pareja, solo) { return estado.reto.solo ? solo : pareja; }
+
+  // Cuenta palabras separando por espacios y saltos de línea. Las líneas vacías no suman,
+  // y tampoco los signos sueltos (viñetas, guiones o emojis sin letras ni números).
+  function palabras(texto) {
+    return String(texto || '').split(/\s+/).filter(function (p) {
+      return /[0-9A-Za-zÀ-ɏ]/.test(p);
+    }).length;
+  }
+  function textoPalabras(n) { return n === 1 ? '1 palabra' : n + ' palabras'; }
+
+  function seleccionar(elem) {
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(elem);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (e) { /* nada */ }
+  }
+  function copiar(texto, fuente, aviso) {
+    function listo() { aviso.textContent = 'Copiado. Ahora pégalo donde lo necesites.'; }
+    function aMano() {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo copiar automáticamente. El texto quedó seleccionado: mantenlo presionado y elige "Copiar" (en computador, Ctrl + C).';
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        // Si el navegador no contesta pronto, se pasa a la copia a mano.
+        var espera = setTimeout(aMano, 1500);
+        navigator.clipboard.writeText(texto).then(
+          function () { clearTimeout(espera); listo(); },
+          function () { clearTimeout(espera); aMano(); }
+        );
+      } else { aMano(); }
+    } catch (e) { aMano(); }
+  }
+  function descargar(texto, nombre, fuente, aviso) {
+    try {
+      var blob = new Blob(['﻿' + texto.replace(/\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = crear('a');
+      a.href = url;
+      a.download = nombre;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      aviso.textContent = 'Se descargó el archivo ' + nombre + '.';
+    } catch (e) {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo descargar en este dispositivo. El texto quedó seleccionado para que lo copies.';
+    }
+  }
+  function fecha() {
+    try { return new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return ''; }
+  }
+  function mostrarTexto(caja, texto, vacio) {
+    var hay = !!String(texto).trim();
+    caja.textContent = hay ? texto.trim() : vacio;
+    caja.classList.toggle('vacia', !hay);
+  }
+
+  /* ---------- Laboratorio ---------- */
+  function partesLlenas() { return PARTES.filter(function (p) { return estado.lab[p.k].trim(); }); }
+  function partesVacias() { return PARTES.filter(function (p) { return !estado.lab[p.k].trim(); }); }
+  function armarInstruccion() {
+    return partesLlenas().map(function (p) { return p.n + ': ' + estado.lab[p.k].trim(); }).join('\n');
+  }
+  function listar(nombres) {
+    if (nombres.length < 2) return nombres.join('');
+    return nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1];
+  }
+  function pintarInstruccion() {
+    var caja = $('instruccion');
+    var llenas = partesLlenas();
+    caja.textContent = '';
+    caja.classList.toggle('vacia', llenas.length === 0);
+    if (llenas.length === 0) {
+      caja.textContent = 'Tu instrucción aparecerá aquí a medida que llenes los campos.';
+    } else {
+      llenas.forEach(function (p) {
+        var linea = crear('p');
+        linea.appendChild(crear('span', 'parte', p.n + ':'));
+        linea.appendChild(document.createTextNode(' ' + estado.lab[p.k].trim()));
+        caja.appendChild(linea);
+      });
+    }
+    var vacias = partesVacias().map(function (p) { return p.n; });
+    $('faltan').textContent = vacias.length === 0 ? 'Tu instrucción tiene las cinco partes.'
+      : (vacias.length === 1 ? 'Te falta una parte: ' : 'Te faltan ' + vacias.length + ' partes: ') + listar(vacias) + '.';
+  }
+  function resumenLab() {
+    var e = estado.lab;
+    var marcados = SUPUESTOS.filter(function (s) { return e.sup[s.k]; }).map(function (s) { return s.n; });
+    var vacias = partesVacias().map(function (p) { return p.n; });
+    var l = ['SESIÓN 2 · LABORATORIO: DE LA PETICIÓN VAGA A LA INSTRUCCIÓN COMPLETA'];
+    if (fecha()) l.push(fecha());
+    l.push('', '1. LA PETICIÓN VAGA', 'Petición: "' + PETICION_VAGA + '"', 'Respuesta de la IA:', o(e.r1));
+    l.push('Lo que la IA supuso o inventó: ' + (marcados.length ? marcados.join(', ') : '(sin marcar)'));
+    if (e.supTxt.trim()) l.push(e.supTxt.trim());
+    l.push('', '2. MI INSTRUCCIÓN CON LAS CINCO PARTES', o(armarInstruccion()));
+    if (vacias.length) l.push('Partes que me faltaron: ' + listar(vacias));
+    l.push('', '3. ANTES Y DESPUÉS', 'Respuesta de la IA a mi instrucción completa:', o(e.r2), 'Verificación de la segunda respuesta:');
+    VERIFICACION.forEach(function (v) { l.push('- ' + v.n + ': ' + o(e.ver[v.k])); });
+    l.push('', 'LA PARTE QUE HIZO LA MAYOR DIFERENCIA', o(e.parte));
+    if (e.parteTxt.trim()) l.push(e.parteTxt.trim());
+    return l.join('\n');
+  }
+  $('btn-copiar-vaga').addEventListener('click', function () {
+    copiar(PETICION_VAGA, $('peticion-vaga'), $('estado-vaga'));
+  });
+  $('btn-copiar-instruccion').addEventListener('click', function () {
+    var texto = armarInstruccion();
+    if (!texto) { $('estado-instruccion').textContent = 'Todavía no hay nada para copiar. Llena primero los campos de arriba.'; return; }
+    copiar(texto, $('instruccion'), $('estado-instruccion'));
+  });
+  $('btn-copiar-res-lab').addEventListener('click', function () {
+    copiar(resumenLab(), $('resumen-lab'), $('estado-res-lab'));
+  });
+  $('btn-descargar-lab').addEventListener('click', function () {
+    descargar(resumenLab(), 'sesion-2-laboratorio.txt', $('resumen-lab'), $('estado-res-lab'));
+  });
+
+  /* ---------- Reto ---------- */
+  var textoInstruccionReto = INSTRUCCION_RETO.map(function (p) { return p[0] + ': ' + p[1]; }).join('\n');
+  INSTRUCCION_RETO.forEach(function (p) {
+    var linea = crear('p');
+    linea.appendChild(crear('span', 'parte', p[0] + ':'));
+    linea.appendChild(document.createTextNode(' ' + p[1]));
+    $('instruccion-reto').appendChild(linea);
+  });
+  $('btn-copiar-reto').addEventListener('click', function () {
+    copiar(textoInstruccionReto, $('instruccion-reto'), $('estado-reto'));
+  });
+
+  // Tabla de criterios: una tarjeta por criterio, con una fila para A y otra para B.
+  CRITERIOS.forEach(function (c) {
+    var tarjeta = crear('div', 'tarjeta criterio');
+    tarjeta.setAttribute('role', 'group');
+    tarjeta.setAttribute('aria-labelledby', 'crit-' + c.id);
+    var h = crear('h3', '', c.id + '. ' + c.t);
+    h.id = 'crit-' + c.id;
+    tarjeta.appendChild(h);
+    ['a', 'b'].forEach(function (lado) {
+      var fila = crear('div', 'lado');
+      var quien = crear('span', 'quien', 'Respuesta ' + lado.toUpperCase());
+      quien.id = 'quien-' + lado + c.id;
+      fila.appendChild(quien);
+      if (c.auto) {
+        var auto = crear('span', 'auto');
+        auto.id = 'auto-' + lado;
+        fila.appendChild(auto);
+      } else {
+        var ops = crear('div', 'opciones');
+        ops.setAttribute('role', 'radiogroup');
+        ops.setAttribute('aria-labelledby', 'crit-' + c.id + ' quien-' + lado + c.id);
+        ['Cumple', 'No cumple'].forEach(function (v) {
+          var lab = crear('label');
+          var inp = crear('input');
+          inp.type = 'radio';
+          inp.name = 'reto.crit.' + lado + c.id;
+          inp.value = v;
+          lab.appendChild(inp);
+          lab.appendChild(crear('span', '', v));
+          ops.appendChild(lab);
+        });
+        fila.appendChild(ops);
+      }
+      tarjeta.appendChild(fila);
+    });
+    $('criterios').appendChild(tarjeta);
+  });
+
+  function valorCriterio(c, lado) {
+    if (c.auto) {
+      var n = palabras(estado.reto[lado]);
+      return n === 0 ? '' : (n <= LIMITE ? 'Cumple' : 'No cumple');
+    }
+    return estado.reto.crit[lado + c.id];
+  }
+  function faltantes() {
+    var n = 0;
+    CRITERIOS.forEach(function (c) { ['a', 'b'].forEach(function (l) { if (!valorCriterio(c, l)) n++; }); });
+    return n;
+  }
+  function puntos(lado) {
+    return CRITERIOS.filter(function (c) { return valorCriterio(c, lado) === 'Cumple'; }).length;
+  }
+  function fallos() {
+    var lista = [];
+    CRITERIOS.forEach(function (c) {
+      var lados = ['a', 'b'].filter(function (l) { return valorCriterio(c, l) === 'No cumple'; });
+      if (lados.length) lista.push({ c: c, lados: lados });
+    });
+    return lista;
+  }
+  function dondeFallo(f) {
+    return f.lados.length === 2 ? 'Falló en las dos respuestas.' : 'Falló en la respuesta ' + f.lados[0].toUpperCase() + '.';
+  }
+
+  function pintarCriterios() {
+    ['a', 'b'].forEach(function (lado) {
+      var n = palabras(estado.reto[lado]);
+      var caja = $('auto-' + lado);
+      caja.classList.toggle('cumple', n > 0 && n <= LIMITE);
+      caja.classList.toggle('nocumple', n > LIMITE);
+      caja.textContent = n === 0 ? 'Falta pegar la respuesta en el paso 2'
+        : (n <= LIMITE ? 'Cumple: ' : 'No cumple: ') + textoPalabras(n);
+      $('cuenta-' + lado).textContent = textoPalabras(n) + ' (el límite de la instrucción era ' + LIMITE + ')';
+      mostrarTexto($('ver-' + lado), estado.reto[lado], 'Todavía no hay respuesta ' + lado.toUpperCase() + '. Pégala en el paso 2.');
+    });
+    var faltan = faltantes();
+    $('puntaje').hidden = faltan > 0;
+    $('faltan-criterios').textContent = faltan === 0 ? '' :
+      (faltan === 1 ? 'Falta 1 casilla por marcar para ver el puntaje.' : 'Faltan ' + faltan + ' casillas por marcar para ver el puntaje.');
+    $('puntos-a').textContent = puntos('a') + ' de ' + CRITERIOS.length;
+    $('puntos-b').textContent = puntos('b') + ' de ' + CRITERIOS.length;
+  }
+
+  // Paso 4: la zona de caminos solo se reconstruye cuando cambia qué criterios fallaron,
+  // para no interrumpir a quien está escribiendo.
+  var firmaCaminos = null;
+  function pintarCaminos() {
+    var incompleta = faltantes() > 0;
+    var lista = incompleta ? [] : fallos();
+    var firma = (estado.reto.solo ? 's' : 'p') + '|' + (incompleta ? 'incompleta' :
+      lista.map(function (f) { return f.c.id + f.lados.join(''); }).join(','));
+    if (firma === firmaCaminos) return;
+    firmaCaminos = firma;
+    var zona = $('zona-caminos');
+    zona.textContent = '';
+
+    if (incompleta) {
+      var nota = crear('div', 'nota');
+      var p = crear('p', '', t('Primero completen la tabla de criterios. ', 'Primero completa la tabla de criterios. '));
+      var enlace = crear('a', '', 'Ir al paso 3');
+      enlace.href = '#reto-3';
+      p.appendChild(enlace);
+      nota.appendChild(p);
+      zona.appendChild(nota);
+      return;
+    }
+
+    if (lista.length === 0) {
+      var tj = crear('div', 'tarjeta');
+      tj.appendChild(crear('h3', '', 'Ninguna respuesta falló'));
+      tj.appendChild(crear('p', '', t('Elijan la mejor de las dos y expliquen la razón con los criterios.', 'Elige la mejor de las dos y explica la razón con los criterios.')));
+      var fs = crear('fieldset');
+      fs.appendChild(crear('legend', '', 'La mejor respuesta'));
+      var ops = crear('div', 'opciones');
+      ['Respuesta A', 'Respuesta B'].forEach(function (v) {
+        var lab = crear('label');
+        var inp = crear('input');
+        inp.type = 'radio'; inp.name = 'reto.mejor'; inp.value = v;
+        lab.appendChild(inp); lab.appendChild(crear('span', '', v));
+        ops.appendChild(lab);
+      });
+      fs.appendChild(ops);
+      tj.appendChild(fs);
+      var campo = crear('div', 'campo');
+      var et = crear('label', '', '¿Por qué es la mejor?');
+      et.htmlFor = 'r-mejor-porque';
+      var ta = crear('textarea');
+      ta.id = 'r-mejor-porque';
+      ta.dataset.campo = 'reto.mejorPorque';
+      campo.appendChild(et); campo.appendChild(ta);
+      tj.appendChild(campo);
+      zona.appendChild(tj);
+    } else {
+      zona.appendChild(crear('p', '', t('Por cada criterio que falló, elijan un camino y escriban por qué.', 'Por cada criterio que falló, elige un camino y escribe por qué.')));
+      lista.forEach(function (f) {
+        var id = f.c.id;
+        var tarjeta = crear('div', 'tarjeta criterio');
+        tarjeta.setAttribute('role', 'group');
+        tarjeta.setAttribute('aria-labelledby', 'cam-' + id);
+        var h = crear('h3', '', 'Criterio ' + id + '. ' + f.c.t);
+        h.id = 'cam-' + id;
+        tarjeta.appendChild(h);
+        tarjeta.appendChild(crear('p', 'estado', dondeFallo(f)));
+        var grupo = crear('fieldset');
+        grupo.appendChild(crear('legend', '', 'Camino para este criterio'));
+        var opciones = crear('div', 'opciones');
+        CAMINOS.forEach(function (v) {
+          var lab = crear('label');
+          var inp = crear('input');
+          inp.type = 'radio'; inp.name = 'reto.caminos.c' + id + '.camino'; inp.value = v;
+          lab.appendChild(inp); lab.appendChild(crear('span', '', v));
+          opciones.appendChild(lab);
+        });
+        grupo.appendChild(opciones);
+        tarjeta.appendChild(grupo);
+        var c2 = crear('div', 'campo');
+        var e2 = crear('label', '', '¿Por qué ese camino?');
+        e2.htmlFor = 'r-porque-' + id;
+        var t2 = crear('textarea');
+        t2.id = 'r-porque-' + id;
+        t2.dataset.campo = 'reto.caminos.c' + id + '.porque';
+        c2.appendChild(e2); c2.appendChild(t2);
+        tarjeta.appendChild(c2);
+        zona.appendChild(tarjeta);
+      });
+    }
+    pintarCampos();
+  }
+
+  function resumenReto() {
+    var e = estado.reto;
+    var l = ['SESIÓN 2 · RETO: MISMA INSTRUCCIÓN, DOS RESULTADOS, MISMOS CRITERIOS'];
+    if (fecha()) l.push(fecha());
+    l.push(e.solo ? 'Trabajé solo: dos intentos con la misma instrucción.' : 'Trabajo en pareja.');
+    l.push('', 'LA INSTRUCCIÓN', textoInstruccionReto);
+    ['a', 'b'].forEach(function (lado) {
+      var L = lado.toUpperCase();
+      l.push('', 'RESPUESTA ' + L + ' (' + o(e['h' + lado]) + ', ' + textoPalabras(palabras(e[lado])) + ')', o(e[lado]));
+    });
+    l.push('', 'LOS MISMOS CRITERIOS');
+    CRITERIOS.forEach(function (c) {
+      l.push(c.id + '. ' + c.t, '   A: ' + o(valorCriterio(c, 'a')) + ' · B: ' + o(valorCriterio(c, 'b')));
+    });
+    if (faltantes() === 0) l.push('Puntaje: A ' + puntos('a') + ' de ' + CRITERIOS.length + ' · B ' + puntos('b') + ' de ' + CRITERIOS.length);
+    l.push('', 'EL CAMINO');
+    if (faltantes() > 0) {
+      l.push('(falta completar la tabla de criterios)');
+    } else if (fallos().length === 0) {
+      l.push('Ninguna respuesta falló. La mejor: ' + o(e.mejor), 'Por qué: ' + o(e.mejorPorque));
+    } else {
+      fallos().forEach(function (f) {
+        var cam = e.caminos['c' + f.c.id];
+        l.push('Criterio ' + f.c.id + ' (' + dondeFallo(f).replace(/\.$/, '') + '): ' + o(cam.camino), '   Por qué: ' + o(cam.porque));
+      });
+    }
+    l.push('', t('Qué hicimos: ', 'Qué hice: ') + o(e.hecho));
+    l.push('Nuevo resultado (' + textoPalabras(palabras(e.nuevo)) + '):', o(e.nuevo), '¿Mejoró?: ' + o(e.mejoro));
+    l.push('', 'PARA COMPARTIR');
+    l.push('¿En qué se diferenciaron las dos respuestas?', o(e.q1));
+    l.push(t('¿Qué camino eligieron y por qué?', '¿Qué camino elegiste y por qué?'), o(e.q2));
+    l.push('¿Funcionó?', o(e.q3));
+    return l.join('\n');
+  }
+  $('btn-copiar-res-reto').addEventListener('click', function () {
+    copiar(resumenReto(), $('resumen-reto'), $('estado-res-reto'));
+  });
+  $('btn-descargar-reto').addEventListener('click', function () {
+    descargar(resumenReto(), 'sesion-2-reto.txt', $('resumen-reto'), $('estado-res-reto'));
+  });
+
+  /* ---------- Del estado a la página y al revés ---------- */
+  function pintarCampos() {
+    todos('[data-campo]').forEach(function (c) {
+      var v = leer(c.dataset.campo);
+      if (c.type === 'checkbox') c.checked = !!v;
+      else if (c.value !== v) c.value = v == null ? '' : v;
+    });
+    todos('input[type="radio"]').forEach(function (r) { r.checked = (r.value === leer(r.name)); });
+  }
+  function pintarModo() {
+    todos('[data-solo]').forEach(function (el) {
+      if (el.dataset.pareja === undefined) el.dataset.pareja = el.textContent;
+      var texto = estado.reto.solo ? el.dataset.solo : el.dataset.pareja;
+      if (el.textContent !== texto) el.textContent = texto;
+    });
+  }
+  function refrescar() {
+    pintarModo();
+    pintarInstruccion();
+    mostrarTexto($('ver-r1'), estado.lab.r1, 'Todavía no has pegado esta respuesta (paso 1).');
+    mostrarTexto($('ver-r2'), estado.lab.r2, 'Todavía no has pegado esta respuesta.');
+    $('resumen-lab').textContent = resumenLab();
+    pintarCriterios();
+    pintarCaminos();
+    $('cuenta-nuevo').textContent = textoPalabras(palabras(estado.reto.nuevo));
+    $('resumen-reto').textContent = resumenReto();
+  }
+  document.addEventListener('input', function (ev) {
+    var c = ev.target;
+    if (!c.dataset || !c.dataset.campo || c.type === 'checkbox') return;
+    escribir(c.dataset.campo, c.value);
+    guardar();
+    refrescar();
+  });
+  document.addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (c.type === 'radio') escribir(c.name, c.value);
+    else if (c.type === 'checkbox' && c.dataset.campo) escribir(c.dataset.campo, c.checked);
+    else return;
+    guardar();
+    refrescar();
+  });
+
+  /* ---------- Navegación por hash ---------- */
+  var vistas = todos('.vista');
+  var actual = { parte: '', paso: 0 };
+  function leerHash() {
+    var h = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+    if (RUTAS[h]) {
+      var guardado = estado[ESTADO_DE[h]].paso;
+      return { parte: h, paso: guardado >= 1 && guardado <= RUTAS[h].pasos.length ? guardado : 1, alias: true };
+    }
+    var m = /^(laboratorio|reto)-(\d)$/.exec(h);
+    if (m && Number(m[2]) >= 1 && Number(m[2]) <= RUTAS[m[1]].pasos.length) return { parte: m[1], paso: Number(m[2]) };
+    return { parte: '', paso: 0 };
+  }
+  function irA(conFoco) {
+    var r = leerHash();
+    if (r.alias) {
+      try { window.history.replaceState(null, '', '#' + r.parte + '-' + r.paso); } catch (e) { /* nada */ }
+    }
+    actual = r;
+    var vista = r.parte ? r.parte + '-' + r.paso : 'inicio';
+    vistas.forEach(function (s) { s.hidden = (s.dataset.vista !== vista); });
+    $('cabecera').hidden = !!r.parte;
+    $('barra').hidden = !r.parte;
+    $('nav').hidden = !r.parte;
+    $('avance').hidden = !r.parte;
+
+    if (r.parte) {
+      var ruta = RUTAS[r.parte];
+      $('barra-titulo').textContent = r.parte === 'reto' && estado.reto.solo ? 'Reto · 40 min' : ruta.titulo;
+      var ol = $('nav-pasos');
+      ol.textContent = '';
+      ruta.pasos.forEach(function (p, i) {
+        var li = crear('li', i + 1 === r.paso ? 'actual' : (i + 1 < r.paso ? 'hecho' : ''));
+        var a = crear('a');
+        a.href = '#' + r.parte + '-' + (i + 1);
+        if (i + 1 === r.paso) a.setAttribute('aria-current', 'step');
+        var num = crear('span', 'num', String(i + 1));
+        num.setAttribute('aria-hidden', 'true');
+        var txt = crear('span', 'txt');
+        var nom = crear('span', 'nom');
+        nom.appendChild(crear('span', 'oculto-visual', 'Paso ' + (i + 1) + ': '));
+        nom.appendChild(document.createTextNode(p.n));
+        txt.appendChild(nom);
+        txt.appendChild(crear('span', 'tmp', p.t));
+        a.appendChild(num); a.appendChild(txt);
+        li.appendChild(a);
+        ol.appendChild(li);
+      });
+      $('btn-continuar').hidden = (r.paso === ruta.pasos.length);
+      estado[ESTADO_DE[r.parte]].paso = r.paso;
+      guardar();
+    }
+    refrescar();
+    if (conFoco) {
+      window.scrollTo(0, 0);
+      var seccion = document.querySelector('.vista[data-vista="' + vista + '"]');
+      var h = seccion && seccion.querySelector('h2');
+      if (h) h.focus({ preventScroll: true });
+    }
+  }
+  window.addEventListener('hashchange', function () { irA(true); });
+  $('btn-atras').addEventListener('click', function () {
+    window.location.hash = actual.paso > 1 ? '#' + actual.parte + '-' + (actual.paso - 1) : '#inicio';
+  });
+  $('btn-continuar').addEventListener('click', function () {
+    if (actual.parte && actual.paso < RUTAS[actual.parte].pasos.length) {
+      window.location.hash = '#' + actual.parte + '-' + (actual.paso + 1);
+    }
+  });
+
+  $('btn-borrar').addEventListener('click', function () {
+    if (!window.confirm('Se borrarán todas tus respuestas de la sesión 2 en este dispositivo. ¿Quieres continuar?')) return;
+    try { window.localStorage.removeItem(CLAVE); } catch (e) { /* nada */ }
+    estado = inicial();
+    firmaCaminos = null;
+    todos('.estado[id^="estado-"]').forEach(function (e) { e.textContent = ''; });
+    pintarCampos();
+    if (window.location.hash === '#inicio') irA(true); else window.location.hash = '#inicio';
+  });
+
+  /* ---------- Arranque ---------- */
+  pintarCampos();
+  irA(false);
+})();
+</script>
+</body>
+</html>

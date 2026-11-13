@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Laboratorios prácticos del curso Fundamentos de IA: aprende a pedirle bien a la IA y a verificar lo que responde.">
+<title>Laboratorios · Fundamentos de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #faf6ee;
+  --superficie: #ffffff;
+  --hundido: #f1ebdf;
+  --tinta: #1c2430;
+  --suave: #4f5a6b;
+  --linea: #d5ccba;
+  --primario: #0f5e5a;
+  --primario-tinta: #ffffff;
+  --primario-suave: #dcefec;
+  --marcador: #ffe14d;
+  --marcador-tinta: #1c1a05;
+  --sombra: 0 1px 2px rgba(28, 36, 48, .06), 0 6px 20px rgba(28, 36, 48, .06);
+  --titulos: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #12171d;
+    --superficie: #1b222b;
+    --hundido: #151b22;
+    --tinta: #eef1f5;
+    --suave: #aab4c3;
+    --linea: #364150;
+    --primario: #74d9cf;
+    --primario-tinta: #082422;
+    --primario-suave: #17393a;
+    --marcador: #f5d63a;
+    --marcador-tinta: #1c1a05;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font-family: var(--texto); font-size: 1rem; line-height: 1.55;
+}
+h1, h2, h3 { font-family: var(--titulos); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0 0 .8rem; }
+a { color: var(--primario); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 3px; border-radius: 6px; }
+.ancho { max-width: 44rem; margin: 0 auto; padding: 0 1rem; }
+
+.cabecera { padding: 1.4rem 0 1.2rem; }
+.sobretitulo {
+  font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--suave); font-weight: 700; margin: 0 0 .3rem;
+}
+.cabecera h1 { font-size: clamp(1.9rem, 8vw, 2.7rem); font-weight: 800; letter-spacing: -.015em; }
+.entrada { margin: .7rem 0 0; color: var(--suave); font-size: 1.05rem; }
+.antes { margin: 1.1rem 0 .5rem; color: var(--suave); }
+.dos-preguntas { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.dos-preguntas li {
+  display: flex; align-items: center; gap: .7rem;
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 14px; padding: .6rem .8rem;
+  font-family: var(--titulos); font-weight: 600; font-size: 1.08rem; line-height: 1.2;
+}
+.dos-preguntas .n {
+  flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--marcador); color: var(--marcador-tinta); font-weight: 800;
+}
+@media (min-width: 40rem) { .dos-preguntas { grid-template-columns: 1fr 1fr; } }
+
+main { padding: .6rem 0 1.5rem; }
+main h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: .8rem; }
+.menu { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+.lab {
+  position: relative; background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; box-shadow: var(--sombra);
+}
+.lab:hover, .lab:focus-within { border-color: var(--primario); }
+.lab .sesion {
+  display: inline-block; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--marcador); color: var(--marcador-tinta); border-radius: 6px; padding: .2rem .5rem; margin-bottom: .55rem;
+}
+.lab h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: .35rem; }
+.lab h3 a { color: inherit; text-decoration: none; }
+/* Toda la tarjeta se puede tocar */
+.lab h3 a::after { content: ""; position: absolute; inset: 0; border-radius: 18px; }
+.lab .datos { color: var(--suave); font-size: .93rem; font-weight: 700; margin-bottom: .9rem; }
+.lab .abrir {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  background: var(--primario); color: var(--primario-tinta); font-weight: 700;
+}
+.lab .avance { display: block; margin-top: .6rem; font-size: .93rem; color: var(--primario); font-weight: 700; }
+.proximos {
+  margin-top: 1rem; border: 2px dashed var(--linea); border-radius: 18px;
+  padding: 1rem; color: var(--suave); text-align: center;
+}
+.proximos p { margin: 0; }
+
+.pie { border-top: 1px solid var(--linea); padding: 1rem 0 2rem; color: var(--suave); font-size: .92rem; }
+.pie p { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="ancho">
+    <p class="sobretitulo">Curso · Fundamentos de IA</p>
+    <h1>Laboratorios</h1>
+    <p class="entrada">Prácticas guiadas para usar la IA con criterio en tu día a día.</p>
+    <p class="antes">Antes de usar la IA, hazte siempre dos preguntas:</p>
+    <ol class="dos-preguntas">
+      <li><span class="n" aria-hidden="true">1</span><span>¿Para qué la necesito?</span></li>
+      <li><span class="n" aria-hidden="true">2</span><span>¿Cómo sabré si el resultado sirve?</span></li>
+    </ol>
+  </div>
+</header>
+
+<main class="ancho">
+  <h2 id="t-menu">Elige un laboratorio</h2>
+
+  <ul class="menu" aria-labelledby="t-menu">
+
+    <!--
+      PARA AGREGAR UN LABORATORIO
+      1. Crea una carpeta nueva (por ejemplo sesion-2) con su propio index.html.
+      2. Copia el bloque <li class="lab"> de abajo, pégalo después del último y cambia
+         la sesión, el título, la descripción, los datos y el enlace.
+      3. En data-clave escribe la clave de localStorage que use ese laboratorio
+         (o borra el atributo si no guarda progreso).
+    -->
+
+    <li class="lab" data-clave="laboratorio-ia-sesion-1">
+      <span class="sesion">Sesión 1</span>
+      <h3><a href="sesion-1/index.html">Pide bien y verifica</a></h3>
+      <p>Prepara tu IA, encuentra los errores en una respuesta que suena segura y resuelve un caso tuyo.</p>
+      <p class="datos">4 pasos · 50 minutos</p>
+      <span class="abrir" aria-hidden="true">Abrir laboratorio</span>
+      <span class="avance" hidden>Ya lo empezaste: tus respuestas siguen guardadas.</span>
+    </li>
+
+  </ul>
+
+  <div class="proximos">
+    <p>Los próximos laboratorios aparecerán aquí a medida que avance el curso.</p>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <p>Tus respuestas se guardan solo en tu dispositivo. Estas páginas no se conectan a ninguna IA.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  // Si el alumno ya empezó un laboratorio en este dispositivo, se lo decimos.
+  var tarjetas = document.querySelectorAll('.lab[data-clave]');
+  Array.prototype.forEach.call(tarjetas, function (t) {
+    var guardado = null;
+    try { guardado = window.localStorage.getItem(t.getAttribute('data-clave')); } catch (e) { guardado = null; }
+    if (!guardado) return;
+    var aviso = t.querySelector('.avance');
+    var boton = t.querySelector('.abrir');
+    if (aviso) aviso.hidden = false;
+    if (boton) boton.textContent = 'Continuar laboratorio';
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Laboratorio de la primera sesión de Fundamentos de IA: aprende a pedirle bien a la IA y a verificar lo que responde.">
+<title>Laboratorio 1 · Fundamentos de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #faf6ee;
+  --superficie: #ffffff;
+  --hundido: #f1ebdf;
+  --tinta: #1c2430;
+  --suave: #4f5a6b;
+  --linea: #d5ccba;
+  --primario: #0f5e5a;
+  --primario-tinta: #ffffff;
+  --primario-suave: #dcefec;
+  --marcador: #ffe14d;
+  --marcador-tinta: #1c1a05;
+  --bien: #1b6e3c;
+  --bien-fondo: #d9f2e0;
+  --fallo: #ad3118;
+  --fallo-fondo: #fbded6;
+  --neutro: #4f5a6b;
+  --neutro-fondo: #e4e7ee;
+  --aviso-fondo: #fff4c7;
+  --sombra: 0 1px 2px rgba(28, 36, 48, .06), 0 6px 20px rgba(28, 36, 48, .06);
+  --titulos: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #12171d;
+    --superficie: #1b222b;
+    --hundido: #151b22;
+    --tinta: #eef1f5;
+    --suave: #aab4c3;
+    --linea: #364150;
+    --primario: #74d9cf;
+    --primario-tinta: #082422;
+    --primario-suave: #17393a;
+    --marcador: #f5d63a;
+    --marcador-tinta: #1c1a05;
+    --bien: #7fdc9f;
+    --bien-fondo: #173d27;
+    --fallo: #ff9d85;
+    --fallo-fondo: #4a2018;
+    --neutro: #aab4c3;
+    --neutro-fondo: #2b3340;
+    --aviso-fondo: #3a3211;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+h1, h2, h3 { font-family: var(--titulos); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0 0 .8rem; }
+a { color: var(--primario); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 3px; border-radius: 6px; }
+h2:focus { outline: none; }
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.ancho { max-width: 44rem; margin: 0 auto; padding: 0 1rem; }
+
+/* Encabezado */
+.cabecera { padding: 1.1rem 0 1rem; }
+.volver { margin: 0 0 .7rem; font-size: .95rem; }
+.volver a { display: inline-block; padding: .3rem 0; font-weight: 700; text-decoration: none; }
+.volver a:hover { text-decoration: underline; }
+.sobretitulo {
+  font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--suave); font-weight: 700; margin: 0 0 .3rem;
+}
+.cabecera h1 { font-size: clamp(1.5rem, 6vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; }
+.antes { margin: .8rem 0 .5rem; color: var(--suave); }
+.dos-preguntas { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.dos-preguntas li {
+  display: flex; align-items: center; gap: .7rem;
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 14px; padding: .6rem .8rem;
+  font-family: var(--titulos); font-weight: 600; font-size: 1.08rem; line-height: 1.2;
+}
+.dos-preguntas .n {
+  flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--marcador); color: var(--marcador-tinta); font-weight: 800;
+}
+@media (min-width: 40rem) { .dos-preguntas { grid-template-columns: 1fr 1fr; } }
+
+/* Navegación de pasos */
+.pasos {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--fondo); border-bottom: 1px solid var(--linea);
+  padding: .5rem 0;
+}
+.pasos ol { list-style: none; margin: 0; padding: 0; display: flex; gap: .4rem; }
+.pasos li { flex: 0 0 auto; min-width: 0; }
+.pasos li.actual { flex: 1 1 auto; }
+.pasos a {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 3rem; padding: .35rem .6rem .35rem .4rem;
+  border-radius: 999px; border: 1px solid var(--linea);
+  background: var(--superficie); color: var(--tinta); text-decoration: none;
+}
+.pasos .num {
+  flex: none; width: 2rem; height: 2rem; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700;
+  background: var(--hundido); color: var(--tinta);
+}
+.pasos .txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.pasos .nom { font-weight: 700; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pasos .tmp { font-size: .76rem; color: var(--suave); white-space: nowrap; }
+.pasos li.hecho .num { background: var(--primario-suave); color: var(--primario); }
+.pasos li.actual a { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.pasos li.actual .num { background: var(--primario-tinta); color: var(--primario); }
+.pasos li.actual .tmp { color: inherit; opacity: .9; }
+@media (max-width: 43.99rem) {
+  .pasos ol { align-items: stretch; }
+  .pasos a { height: 100%; border-radius: 16px; }
+  .pasos li.actual a { padding: .35rem .5rem .35rem .4rem; gap: .4rem; }
+  .pasos li.actual .nom { white-space: normal; overflow: visible; font-size: .82rem; }
+  .pasos li:not(.actual) a { flex-direction: column; justify-content: center; gap: .1rem; padding: .3rem .2rem; min-width: 2.8rem; }
+  .pasos li:not(.actual) .num { width: 1.6rem; height: 1.6rem; font-size: .9rem; }
+  .pasos li:not(.actual) .tmp { font-size: .7rem; }
+  .pasos li:not(.actual) .nom {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+}
+@media (min-width: 44rem) {
+  .pasos li, .pasos li.actual { flex: 1 1 0; }
+  .pasos .nom { white-space: normal; }
+}
+
+/* Pasos */
+main { padding: 1.2rem 0 1rem; }
+.paso-cab { margin-bottom: 1rem; }
+.paso-cab .meta { color: var(--suave); font-weight: 700; font-size: .88rem; margin: 0 0 .2rem; }
+.paso-cab h2 { font-size: clamp(1.45rem, 5.5vw, 1.85rem); font-weight: 800; }
+.paso-cab p { margin: .5rem 0 0; color: var(--suave); }
+h3 { font-size: 1.18rem; font-weight: 600; margin-bottom: .5rem; }
+
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
+}
+.tarjeta > :last-child { margin-bottom: 0; }
+.rejilla { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.rejilla .tarjeta { margin-bottom: 0; }
+@media (min-width: 40rem) { .rejilla.dos { grid-template-columns: 1fr 1fr; } }
+.tarjeta ol, .tarjeta ul { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.tarjeta li { margin-bottom: .25rem; }
+
+.nota {
+  background: var(--aviso-fondo); border-left: 5px solid var(--marcador);
+  border-radius: 10px; padding: .75rem .9rem; margin-bottom: 1rem;
+}
+.nota > :last-child { margin-bottom: 0; }
+.nota strong { font-weight: 700; }
+
+.pregunta {
+  border-left: 5px solid var(--primario); background: var(--primario-suave);
+  border-radius: 10px; padding: .65rem .9rem; margin-bottom: .6rem;
+}
+.pregunta .q { font-family: var(--titulos); font-weight: 600; display: block; }
+.pregunta .r { display: block; margin-top: .15rem; }
+
+.cita {
+  margin: 0 0 1rem; padding: .8rem .95rem; background: var(--hundido);
+  border-radius: 14px; border: 1px dashed var(--linea); font-style: italic;
+}
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  border: 2px solid var(--primario); background: var(--primario); color: var(--primario-tinta);
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;
+}
+.boton.claro { background: transparent; color: var(--primario); }
+.boton:active { transform: translateY(1px); }
+.fila { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: .8rem; }
+.estado { color: var(--suave); font-size: .95rem; margin: 0 0 .8rem; min-height: 1.2em; }
+.estado:empty { display: none; }
+
+/* Campos */
+label.campo, .campo > label { display: block; font-weight: 700; margin-bottom: .3rem; }
+.campo { margin-bottom: .9rem; }
+.ayuda { display: block; font-weight: 400; color: var(--suave); font-size: .93rem; }
+textarea {
+  width: 100%; min-height: 5.2rem; resize: vertical;
+  font: inherit; color: var(--tinta); background: var(--fondo);
+  border: 2px solid var(--linea); border-radius: 12px; padding: .6rem .7rem;
+}
+textarea:focus-visible { border-color: var(--primario); outline-offset: 1px; }
+textarea::placeholder { color: var(--suave); opacity: .85; }
+fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: .4rem; }
+
+.opciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.opciones label { position: relative; display: block; flex: 1 1 auto; cursor: pointer; }
+.opciones input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opciones span {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 2.9rem; padding: .45rem .9rem; border-radius: 12px;
+  border: 2px solid var(--linea); background: var(--superficie); font-weight: 700;
+}
+.opciones input:checked + span { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.opciones input:focus-visible + span { outline: 3px solid var(--primario); outline-offset: 3px; }
+
+.casilla {
+  display: flex; gap: .7rem; align-items: flex-start; cursor: pointer;
+  padding: .8rem .9rem; border: 2px solid var(--linea); border-radius: 14px;
+  background: var(--superficie); font-weight: 700; margin-bottom: 1rem;
+}
+.casilla input { flex: none; width: 1.5rem; height: 1.5rem; margin: .1rem 0 0; accent-color: var(--primario); }
+
+.fichas { display: flex; flex-wrap: wrap; gap: .45rem; margin: 0 0 .9rem; padding: 0; list-style: none; }
+.ficha {
+  font: inherit; font-size: .95rem; color: var(--tinta); cursor: pointer; text-align: left;
+  min-height: 2.75rem; padding: .4rem .85rem; border-radius: 999px;
+  border: 1.5px solid var(--primario); background: var(--primario-suave);
+}
+.ficha[aria-pressed="true"] { background: var(--primario); color: var(--primario-tinta); }
+
+/* Respuesta de ejemplo */
+.rotulo {
+  display: inline-block; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--marcador); color: var(--marcador-tinta); border-radius: 6px; padding: .2rem .5rem; margin-bottom: .5rem;
+}
+.respuesta p { margin-bottom: .7rem; line-height: 2; }
+.frase {
+  cursor: pointer; padding: .14em .22em; border-radius: .3em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  text-decoration: underline dotted var(--suave); text-underline-offset: .28em;
+  -webkit-tap-highlight-color: transparent;
+}
+.frase[aria-pressed="true"] { background: var(--marcador); color: var(--marcador-tinta); text-decoration: none; }
+.revisado .frase { cursor: default; text-decoration: none; }
+.revisado .frase.acierto { background: var(--bien-fondo); color: var(--tinta); box-shadow: inset 0 -3px var(--bien); }
+.revisado .frase.omitido { background: var(--fallo-fondo); color: var(--tinta); box-shadow: inset 0 -3px var(--fallo); }
+.revisado .frase.demas { background: var(--neutro-fondo); color: var(--tinta); box-shadow: inset 0 -3px var(--neutro); }
+.etq {
+  display: inline-block; margin-left: .35em; padding: 0 .4em; border-radius: 5px;
+  font-size: .74rem; font-weight: 700; line-height: 1.5; vertical-align: .1em;
+  border: 1.5px solid currentColor; white-space: nowrap;
+}
+.acierto .etq { color: var(--bien); }
+.omitido .etq { color: var(--fallo); }
+.demas .etq { color: var(--neutro); }
+
+.puntaje { font-family: var(--titulos); font-weight: 800; font-size: 1.5rem; margin-bottom: .6rem; }
+.leyenda { list-style: none; padding: 0 !important; margin: 0 0 1rem !important; display: grid; gap: .3rem; font-size: .95rem; }
+.leyenda li { display: flex; align-items: center; gap: .5rem; }
+.leyenda i { flex: none; width: 1.3rem; height: 1rem; border-radius: 4px; }
+.leyenda .a { background: var(--bien-fondo); box-shadow: inset 0 -3px var(--bien); }
+.leyenda .o { background: var(--fallo-fondo); box-shadow: inset 0 -3px var(--fallo); }
+.leyenda .d { background: var(--neutro-fondo); box-shadow: inset 0 -3px var(--neutro); }
+
+.errores { list-style: none; padding: 0 !important; margin: 0 0 1rem !important; display: grid; gap: .7rem; }
+.errores li { border: 1px solid var(--linea); border-left-width: 6px; border-radius: 12px; padding: .7rem .85rem; margin: 0; }
+.errores li.acierto { border-left-color: var(--bien); }
+.errores li.omitido { border-left-color: var(--fallo); }
+.errores .tipo { font-family: var(--titulos); font-weight: 600; font-size: 1.08rem; display: block; }
+.errores .como { display: block; font-size: .9rem; font-weight: 700; margin-bottom: .3rem; }
+.errores li.acierto .como { color: var(--bien); }
+.errores li.omitido .como { color: var(--fallo); }
+.errores q { font-style: italic; color: var(--suave); display: block; margin-bottom: .3rem; }
+.errores p { margin: 0 0 .2rem; }
+
+.cierre {
+  font-family: var(--titulos); font-weight: 600; font-size: 1.12rem; line-height: 1.3;
+  border-left: 5px solid var(--marcador); padding: .3rem 0 .3rem .8rem; margin: 0;
+}
+
+.salida {
+  white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0 0 .8rem;
+  background: var(--hundido); border: 1px dashed var(--linea); border-radius: 12px;
+  padding: .8rem .9rem; -webkit-user-select: text; user-select: text;
+}
+.salida.vacia { color: var(--suave); font-style: italic; }
+
+/* Pie */
+.avance { display: flex; justify-content: space-between; gap: .6rem; margin: 1.4rem 0 1rem; }
+.avance .boton { min-width: 8rem; }
+.avance .derecha { margin-left: auto; }
+.pie { border-top: 1px solid var(--linea); padding: 1rem 0 2rem; color: var(--suave); font-size: .92rem; }
+.pie p { margin: 0 0 .4rem; }
+.enlace {
+  font: inherit; color: var(--suave); background: none; border: 0; padding: .4rem 0;
+  text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .paso { animation: entra .25s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="ancho">
+    <p class="volver"><a href="../index.html">‹ Todos los laboratorios</a></p>
+    <p class="sobretitulo">Fundamentos de IA · Sesión 1</p>
+    <h1>Laboratorio: pide bien y verifica</h1>
+    <p class="antes">Antes de usar la IA, hazte siempre dos preguntas:</p>
+    <ol class="dos-preguntas">
+      <li><span class="n" aria-hidden="true">1</span><span>¿Para qué la necesito?</span></li>
+      <li><span class="n" aria-hidden="true">2</span><span>¿Cómo sabré si el resultado sirve?</span></li>
+    </ol>
+  </div>
+</header>
+
+<nav class="pasos" aria-label="Pasos del laboratorio">
+  <div class="ancho">
+    <ol id="nav-pasos">
+      <li><a href="#preparar"><span class="num" aria-hidden="true">1</span><span class="txt"><span class="nom"><span class="oculto-visual">Paso 1: </span>Prepara tu herramienta</span><span class="tmp">8 min</span></span></a></li>
+      <li><a href="#caso-guiado"><span class="num" aria-hidden="true">2</span><span class="txt"><span class="nom"><span class="oculto-visual">Paso 2: </span>Encuentra los errores</span><span class="tmp">17 min</span></span></a></li>
+      <li><a href="#tu-caso"><span class="num" aria-hidden="true">3</span><span class="txt"><span class="nom"><span class="oculto-visual">Paso 3: </span>Tu caso propio</span><span class="tmp">20 min</span></span></a></li>
+      <li><a href="#resumen"><span class="num" aria-hidden="true">4</span><span class="txt"><span class="nom"><span class="oculto-visual">Paso 4: </span>Tu resumen</span><span class="tmp">5 min</span></span></a></li>
+    </ol>
+  </div>
+</nav>
+
+<main class="ancho">
+
+  <!-- PASO 1 -->
+  <section class="paso" data-paso="preparar" aria-labelledby="t-preparar">
+    <div class="paso-cab">
+      <p class="meta">Paso 1 de 4 · 8 minutos</p>
+      <h2 id="t-preparar" tabindex="-1">Prepara tu herramienta</h2>
+      <p>Hoy vas a trabajar con una IA gratuita. Escoge una y entra.</p>
+    </div>
+
+    <div class="rejilla dos">
+      <div class="tarjeta">
+        <h3>Gemini</h3>
+        <ol>
+          <li>Abre el enlace de abajo.</li>
+          <li>Toca <strong>Iniciar sesión</strong> y entra con tu cuenta de Google (la misma de Gmail).</li>
+          <li>Escríbele "Hola" para probar.</li>
+        </ol>
+        <a class="boton claro" href="https://gemini.google.com" target="_blank" rel="noopener">Abrir gemini.google.com<span class="oculto-visual"> (se abre en una pestaña nueva)</span></a>
+      </div>
+      <div class="tarjeta">
+        <h3>ChatGPT</h3>
+        <ol>
+          <li>Abre el enlace de abajo.</li>
+          <li>Toca <strong>Registrarse</strong> y usa tu correo, o elige <strong>Continuar con Google</strong>.</li>
+          <li>Escríbele "Hola" para probar.</li>
+        </ol>
+        <a class="boton claro" href="https://chatgpt.com" target="_blank" rel="noopener">Abrir chatgpt.com<span class="oculto-visual"> (se abre en una pestaña nueva)</span></a>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>¿Cuál vas a usar hoy?</legend>
+      <div class="opciones">
+        <label><input type="radio" name="herramienta" value="Gemini"><span>Gemini</span></label>
+        <label><input type="radio" name="herramienta" value="ChatGPT"><span>ChatGPT</span></label>
+      </div>
+    </fieldset>
+
+    <label class="casilla">
+      <input type="checkbox" id="listo">
+      <span>Ya inicié sesión y puedo escribirle a la IA</span>
+    </label>
+
+    <div class="nota">
+      <p><strong>Deja la IA abierta en otra pestaña.</strong> Vas a ir y volver entre esa pestaña y esta página; tus respuestas aquí se guardan solas.</p>
+      <p>Si algo falla, levanta la mano.</p>
+    </div>
+  </section>
+
+  <!-- PASO 2 -->
+  <section class="paso" data-paso="caso-guiado" aria-labelledby="t-caso" hidden>
+    <div class="paso-cab">
+      <p class="meta">Paso 2 de 4 · 17 minutos</p>
+      <h2 id="t-caso" tabindex="-1">Encuentra los errores</h2>
+      <p>Laura quiere organizar una fiesta sorpresa para su mamá. Esto le escribió a una IA:</p>
+    </div>
+
+    <blockquote class="cita" id="peticion-laura">Ayúdame a planear una fiesta sorpresa para mi mamá, que cumple 60 años el 15 de marzo de 2027. Seremos 10 personas, tengo un presupuesto de $300.000 pesos y mi mamá es vegetariana. Dame un plan con menú, costos y pasos.</blockquote>
+
+    <div class="pregunta">
+      <span class="q">1. ¿Para qué la necesita Laura?</span>
+      <span class="r">Para tener un plan que pueda ejecutar con su presupuesto.</span>
+    </div>
+    <div class="pregunta" style="margin-bottom:1rem">
+      <span class="q">2. ¿Cómo sabrá si el resultado sirve?</span>
+      <span class="r">Respeta sus condiciones, las cuentas cuadran y los datos son ciertos.</span>
+    </div>
+
+    <div class="tarjeta" id="zona-respuesta">
+      <span class="rotulo">Respuesta de ejemplo</span>
+      <p><strong>Preparada para este ejercicio: tiene 4 errores a propósito.</strong> Toca cada frase que te parezca sospechosa. Tócala otra vez para desmarcarla.</p>
+      <div class="respuesta" id="respuesta" role="group" aria-label="Respuesta de la IA. Marca las frases sospechosas."></div>
+      <p class="estado" id="conteo" aria-live="polite"></p>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-revisar">Revisar mis sospechas</button>
+        <button type="button" class="boton claro" id="btn-reintentar" hidden>Volver a intentar</button>
+      </div>
+    </div>
+
+    <div class="tarjeta" id="resultado" hidden>
+      <h3 class="puntaje" id="puntaje" tabindex="-1"></h3>
+      <ul class="leyenda" aria-label="Qué significa cada color">
+        <li><i class="a" aria-hidden="true"></i>Encontrado: era un error y lo marcaste.</li>
+        <li><i class="o" aria-hidden="true"></i>Se te pasó: era un error y no lo marcaste.</li>
+        <li><i class="d" aria-hidden="true"></i>Estaba bien: lo marcaste, pero no era un error.</li>
+      </ul>
+      <h3>Los 4 errores</h3>
+      <ul class="errores" id="lista-errores"></ul>
+      <p class="cierre">La respuesta sonaba segura de principio a fin. La IA no avisa cuando se equivoca; por eso verificar es tu trabajo.</p>
+    </div>
+
+    <div class="tarjeta" id="con-tu-ia" hidden>
+      <h3>Ahora con tu IA</h3>
+      <p>Copia la petición de Laura, pégala en tu IA y revisa lo que te responde.</p>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-laura">Copiar la petición de Laura</button>
+      </div>
+      <p class="estado" id="estado-laura" aria-live="polite"></p>
+
+      <fieldset>
+        <legend>Día de la semana<span class="ayuda">¿Dijo qué día cae el 15 de marzo de 2027? Es lunes.</span></legend>
+        <div class="opciones">
+          <label><input type="radio" name="chk-dia" value="Bien"><span>Bien</span></label>
+          <label><input type="radio" name="chk-dia" value="Falló"><span>Falló</span></label>
+          <label><input type="radio" name="chk-dia" value="No lo mencionó"><span>No lo mencionó</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Vegetariana<span class="ayuda">¿Todo el menú sirve para una persona vegetariana?</span></legend>
+        <div class="opciones">
+          <label><input type="radio" name="chk-veg" value="Bien"><span>Bien</span></label>
+          <label><input type="radio" name="chk-veg" value="Falló"><span>Falló</span></label>
+          <label><input type="radio" name="chk-veg" value="No lo mencionó"><span>No lo mencionó</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Suma y presupuesto<span class="ayuda">Suma los costos con la calculadora. ¿Da lo que dice el total y no pasa de $300.000?</span></legend>
+        <div class="opciones">
+          <label><input type="radio" name="chk-suma" value="Bien"><span>Bien</span></label>
+          <label><input type="radio" name="chk-suma" value="Falló"><span>Falló</span></label>
+          <label><input type="radio" name="chk-suma" value="No lo mencionó"><span>No lo mencionó</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Cifras sin fuente<span class="ayuda">Si dio porcentajes o habló de "estudios", ¿dijo de dónde salen?</span></legend>
+        <div class="opciones">
+          <label><input type="radio" name="chk-fuente" value="Bien"><span>Bien</span></label>
+          <label><input type="radio" name="chk-fuente" value="Falló"><span>Falló</span></label>
+          <label><input type="radio" name="chk-fuente" value="No lo mencionó"><span>No lo mencionó</span></label>
+        </div>
+      </fieldset>
+
+      <div class="nota">
+        <p>Tu IA puede acertar en todo o fallar en algo distinto. Las dos cosas enseñan: lo importante es que tú lo comprobaste.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 3 -->
+  <section class="paso" data-paso="tu-caso" aria-labelledby="t-tucaso" hidden>
+    <div class="paso-cab">
+      <p class="meta">Paso 3 de 4 · 20 minutos</p>
+      <h2 id="t-tucaso" tabindex="-1">Tu caso propio</h2>
+      <p>Ahora con algo tuyo, de tu día a día. Si no se te ocurre nada, toca una idea para empezar.</p>
+    </div>
+
+    <ul class="fichas" id="ideas" aria-label="Ideas para empezar"></ul>
+
+    <div class="tarjeta">
+      <h3>A. ¿Para qué la necesito?</h3>
+      <div class="campo">
+        <label for="necesito">Lo que necesito resolver</label>
+        <textarea id="necesito" data-campo="necesito" placeholder="Ej.: organizar las comidas de mi casa esta semana"></textarea>
+      </div>
+      <div class="campo">
+        <label for="espero">El resultado que espero recibir</label>
+        <textarea id="espero" data-campo="espero" placeholder="Ej.: un menú de lunes a domingo con lista de compras"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>B. ¿Cómo sabré si el resultado sirve?</h3>
+      <div class="campo">
+        <label for="criterios">Mis criterios <span class="ayuda">Escríbelos o toca las sugerencias para agregarlas.</span></label>
+        <textarea id="criterios" data-campo="criterios"></textarea>
+      </div>
+      <ul class="fichas" id="sugerencias" aria-label="Sugerencias de criterios"></ul>
+    </div>
+
+    <div class="tarjeta">
+      <h3>C. Arma tu petición</h3>
+      <div class="campo">
+        <label for="contexto">Contexto <span class="ayuda">Quién eres y cuál es la situación.</span></label>
+        <textarea id="contexto" data-campo="contexto" placeholder="Ej.: somos 4 en casa y cocino solo en las noches"></textarea>
+      </div>
+      <div class="campo">
+        <label for="condiciones">Condiciones <span class="ayuda">Límites que la respuesta debe respetar: plata, tiempo, tono, largo.</span></label>
+        <textarea id="condiciones" data-campo="condiciones" placeholder="Ej.: máximo $200.000, sin pescado, recetas de menos de 30 minutos"></textarea>
+      </div>
+      <div class="nota">
+        <p><strong>Cuida tus datos.</strong> No escribas información privada como tu cédula, contraseñas o números de cuenta.</p>
+      </div>
+      <p><strong>Tu petición completa</strong></p>
+      <div class="salida vacia" id="peticion" tabindex="0" aria-live="off"></div>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-peticion">Copiar</button>
+      </div>
+      <p class="estado" id="estado-peticion" aria-live="polite"></p>
+      <p>Pégala en tu IA y lee con calma lo que te responde.</p>
+    </div>
+
+    <div class="tarjeta">
+      <h3>D. Verifica el resultado</h3>
+      <p>Vuelve a tus criterios de la parte B y compara.</p>
+      <fieldset>
+        <legend>Mi veredicto</legend>
+        <div class="opciones">
+          <label><input type="radio" name="veredicto" value="Sirve tal como está"><span>Sirve tal como está</span></label>
+          <label><input type="radio" name="veredicto" value="Sirve con ajustes"><span>Sirve con ajustes</span></label>
+          <label><input type="radio" name="veredicto" value="No sirve"><span>No sirve</span></label>
+        </div>
+      </fieldset>
+      <div class="campo">
+        <label for="hallazgos">¿Qué encontré al verificar?</label>
+        <textarea id="hallazgos" data-campo="hallazgos" placeholder="Ej.: una cuenta no cuadraba; ignoró una condición; todo se pudo comprobar"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 4 -->
+  <section class="paso" data-paso="resumen" aria-labelledby="t-resumen" hidden>
+    <div class="paso-cab">
+      <p class="meta">Paso 4 de 4 · 5 minutos</p>
+      <h2 id="t-resumen" tabindex="-1">Tu resumen</h2>
+      <p>Hoy practicaste las dos preguntas: para qué necesitas la IA y cómo sabrás si el resultado sirve.</p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="compromiso">¿Qué harás diferente la próxima vez que uses la IA?</label>
+        <textarea id="compromiso" data-campo="compromiso"></textarea>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Todo lo que trabajaste</h3>
+      <pre class="salida" id="texto-resumen" tabindex="0"></pre>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-resumen">Copiar</button>
+        <button type="button" class="boton claro" id="btn-descargar">Descargar como .txt</button>
+      </div>
+      <p class="estado" id="estado-resumen" aria-live="polite"></p>
+    </div>
+
+    <div class="nota">
+      <p><strong>Cuando termines, vuelve a mirar al frente.</strong> Vamos a cerrar con las conclusiones entre todos.</p>
+    </div>
+  </section>
+
+  <div class="avance">
+    <button type="button" class="boton claro" id="btn-atras">Atrás</button>
+    <button type="button" class="boton derecha" id="btn-continuar">Continuar</button>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <p>Tus respuestas se guardan solo en este dispositivo. Esta página no se conecta a ninguna IA.</p>
+    <button type="button" class="enlace" id="btn-borrar">Borrar mis respuestas</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Datos del ejercicio ---------- */
+  var COSTOS = [
+    { nombre: 'comida', valor: 150000 },
+    { nombre: 'torta', valor: 60000 },
+    { nombre: 'decoración', valor: 50000 },
+    { nombre: 'bebidas', valor: 70000 }
+  ];
+  var SUMA_REAL = COSTOS.reduce(function (a, c) { return a + c.valor; }, 0);
+  var DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  var DIA_REAL = DIAS[new Date(2027, 2, 15).getDay()];
+
+  function pesos(n) { return '$' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+  var FRASES = [
+    { t: '¡Claro! Aquí tienes un plan para la fiesta sorpresa de tu mamá.' },
+    { t: 'El 15 de marzo de 2027 cae sábado, un día ideal para reunir a la familia.',
+      err: { tipo: 'Dato falso',
+             exp: 'El 15 de marzo de 2027 no cae sábado: es ' + DIA_REAL + '.',
+             ver: 'Míralo en el calendario de tu celular.' } },
+    { t: 'Como plato principal te recomiendo pollo al horno con arroz y ensalada.',
+      err: { tipo: 'Ignoró una condición',
+             exp: 'Laura dijo que su mamá es vegetariana y la IA propuso pollo.',
+             ver: 'Vuelve a leer las condiciones de la petición y compáralas con la respuesta.' } },
+    { t: 'De postre, una torta de zanahoria para 10 personas.' },
+    { t: 'Costos estimados: ' + COSTOS.map(function (c) { return c.nombre + ' ' + pesos(c.valor); }).join(', ').replace(/, ([^,]*)$/, ' y $1') + '.' },
+    { t: 'Total: $300.000, justo dentro de tu presupuesto.',
+      err: { tipo: 'Cuenta mal hecha',
+             exp: 'La suma de los costos da ' + pesos(SUMA_REAL) + ', no $300.000. El plan se pasa del presupuesto.',
+             ver: 'Haz la suma tú con la calculadora.' } },
+    { t: 'Envía las invitaciones por WhatsApp con una semana de anticipación y pide a todos guardar el secreto.' },
+    { t: 'Según estudios, el 87 % de las personas prefiere una fiesta sorpresa a un regalo.',
+      err: { tipo: 'Dato sin fuente',
+             exp: 'No dice qué estudios ni de dónde sale la cifra. Es posible que sea inventada.',
+             ver: 'Pídele la fuente a la IA y búscala tú por fuera.' } },
+    { t: 'Pide a un familiar que lleve a tu mamá fuera de casa mientras decoras.' },
+    { t: 'Ten lista su música favorita para el momento de la llegada.' }
+  ];
+  var PARRAFOS = [[0], [1], [2, 3], [4, 5], [6], [7], [8, 9]];
+  var TOTAL_ERRORES = FRASES.filter(function (f) { return f.err; }).length;
+
+  var IDEAS = [
+    { n: 'Escribir un mensaje difícil',
+      necesito: 'Escribir un mensaje difícil para una persona, diciendo lo que pienso sin dañar la relación.',
+      espero: 'Un mensaje corto y respetuoso, listo para enviar, en dos versiones para escoger.' },
+    { n: 'Planear las comidas de la semana',
+      necesito: 'Planear las comidas de mi casa para toda la semana sin gastar de más.',
+      espero: 'Un menú de lunes a domingo con su lista de compras.' },
+    { n: 'Entender un documento',
+      necesito: 'Entender un documento que me cuesta leer, como un contrato, una factura o una carta.',
+      espero: 'Una explicación en palabras sencillas y una lista de lo que debo hacer o revisar.' },
+    { n: 'Organizar mis gastos',
+      necesito: 'Organizar mis gastos del mes para saber en qué se me va la plata.',
+      espero: 'Una tabla sencilla con mis gastos por categoría y dos ideas para ahorrar.' },
+    { n: 'Preparar una entrevista',
+      necesito: 'Prepararme para una entrevista de trabajo.',
+      espero: 'Diez preguntas que me podrían hacer, con una guía para responder cada una.' }
+  ];
+  var SUGERENCIAS = [
+    'Respeta mis condiciones',
+    'Las cuentas o fechas son correctas',
+    'Puedo comprobar los datos en otra fuente',
+    'Lo entiendo y lo puedo explicar',
+    'Lo podría usar sin cambiar casi nada'
+  ];
+  var CHEQUEOS = [
+    { k: 'dia', n: 'Día de la semana' },
+    { k: 'veg', n: 'Vegetariana' },
+    { k: 'suma', n: 'Suma y presupuesto' },
+    { k: 'fuente', n: 'Cifras sin fuente' }
+  ];
+  var PASOS = ['preparar', 'caso-guiado', 'tu-caso', 'resumen'];
+  var CLAVE = 'laboratorio-ia-sesion-1';
+
+  /* ---------- Estado y guardado ---------- */
+  function inicial() {
+    return {
+      paso: 'preparar', herramienta: '', listo: false,
+      marcas: [], revisado: false, yaReviso: false, aciertos: null,
+      chk: { dia: '', veg: '', suma: '', fuente: '' },
+      necesito: '', espero: '', criterios: '', contexto: '', condiciones: '',
+      veredicto: '', hallazgos: '', compromiso: ''
+    };
+  }
+  function cargar() {
+    var base = inicial();
+    try {
+      var crudo = window.localStorage.getItem(CLAVE);
+      if (!crudo) return base;
+      var g = JSON.parse(crudo);
+      if (!g || typeof g !== 'object') return base;
+      Object.keys(base).forEach(function (k) {
+        if (k === 'chk') {
+          if (g.chk && typeof g.chk === 'object') {
+            Object.keys(base.chk).forEach(function (c) { if (typeof g.chk[c] === 'string') base.chk[c] = g.chk[c]; });
+          }
+        } else if (k === 'marcas') {
+          if (Array.isArray(g.marcas)) base.marcas = g.marcas.filter(function (i) { return FRASES[i]; });
+        } else if (typeof g[k] === typeof base[k] || (k === 'aciertos' && typeof g[k] === 'number')) {
+          base[k] = g[k];
+        }
+      });
+    } catch (e) { /* sin almacenamiento: la página funciona igual */ }
+    return base;
+  }
+  function guardar() {
+    try { window.localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) { /* nada */ }
+  }
+  var estado = cargar();
+
+  /* ---------- Utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function crear(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) e.className = clase;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  function todos(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
+
+  function seleccionar(elem) {
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(elem);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (e) { /* nada */ }
+  }
+  function copiar(texto, fuente, aviso) {
+    function listo() { aviso.textContent = 'Copiado. Ahora pégalo donde lo necesites.'; }
+    function aMano() {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo copiar automáticamente. El texto quedó seleccionado: mantenlo presionado y elige "Copiar" (en computador, Ctrl + C).';
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(listo, aMano);
+      } else { aMano(); }
+    } catch (e) { aMano(); }
+  }
+
+  /* ---------- Paso 2: respuesta con frases ---------- */
+  var cajaRespuesta = $('respuesta');
+  var spans = [];
+  PARRAFOS.forEach(function (grupo) {
+    var p = crear('p');
+    grupo.forEach(function (i, pos) {
+      var s = crear('span', 'frase');
+      s.setAttribute('role', 'button');
+      s.setAttribute('tabindex', '0');
+      s.setAttribute('aria-pressed', 'false');
+      s.dataset.i = i;
+      s.appendChild(crear('span', 'txt-frase', FRASES[i].t));
+      spans[i] = s;
+      p.appendChild(s);
+      if (pos < grupo.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    cajaRespuesta.appendChild(p);
+  });
+
+  function alternar(i) {
+    if (estado.revisado) return;
+    var pos = estado.marcas.indexOf(i);
+    if (pos === -1) estado.marcas.push(i); else estado.marcas.splice(pos, 1);
+    guardar();
+    pintarCaso();
+  }
+  cajaRespuesta.addEventListener('click', function (ev) {
+    var s = ev.target.closest('.frase');
+    if (s) alternar(Number(s.dataset.i));
+  });
+  cajaRespuesta.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
+    var s = ev.target.closest('.frase');
+    if (!s) return;
+    ev.preventDefault();
+    alternar(Number(s.dataset.i));
+  });
+
+  function clasificar(i) {
+    var marcada = estado.marcas.indexOf(i) !== -1;
+    var esError = !!FRASES[i].err;
+    if (esError && marcada) return 'acierto';
+    if (esError && !marcada) return 'omitido';
+    if (!esError && marcada) return 'demas';
+    return '';
+  }
+  var ETIQUETAS = { acierto: 'Encontrado', omitido: 'Se te pasó', demas: 'Estaba bien' };
+
+  function pintarCaso() {
+    $('zona-respuesta').classList.toggle('revisado', estado.revisado);
+    spans.forEach(function (s, i) {
+      var vieja = s.querySelector('.etq');
+      if (vieja) s.removeChild(vieja);
+      s.classList.remove('acierto', 'omitido', 'demas');
+      if (estado.revisado) {
+        var c = clasificar(i);
+        s.setAttribute('aria-disabled', 'true');
+        s.removeAttribute('aria-pressed');
+        if (c) {
+          s.classList.add(c);
+          s.appendChild(crear('span', 'etq', ETIQUETAS[c]));
+        }
+      } else {
+        s.removeAttribute('aria-disabled');
+        s.setAttribute('aria-pressed', estado.marcas.indexOf(i) !== -1 ? 'true' : 'false');
+      }
+    });
+
+    var n = estado.marcas.length;
+    $('conteo').textContent = estado.revisado ? '' :
+      (n === 0 ? 'Todavía no has marcado ninguna frase.' : (n === 1 ? 'Llevas 1 frase marcada.' : 'Llevas ' + n + ' frases marcadas.'));
+    $('btn-revisar').hidden = estado.revisado;
+    $('btn-reintentar').hidden = !estado.revisado;
+    $('resultado').hidden = !estado.revisado;
+    $('con-tu-ia').hidden = !estado.yaReviso;
+
+    if (estado.revisado) {
+      var aciertos = FRASES.filter(function (f, i) { return clasificar(i) === 'acierto'; }).length;
+      $('puntaje').textContent = 'Encontraste ' + aciertos + ' de ' + TOTAL_ERRORES + ' errores';
+      var lista = $('lista-errores');
+      lista.textContent = '';
+      FRASES.forEach(function (f, i) {
+        if (!f.err) return;
+        var c = clasificar(i);
+        var li = crear('li', c);
+        li.appendChild(crear('span', 'tipo', f.err.tipo));
+        li.appendChild(crear('span', 'como', c === 'acierto' ? 'Lo encontraste' : 'Se te pasó'));
+        li.appendChild(crear('q', '', f.t));
+        li.appendChild(crear('p', '', f.err.exp));
+        var v = crear('p');
+        v.appendChild(crear('strong', '', 'Cómo verificarlo: '));
+        v.appendChild(document.createTextNode(f.err.ver));
+        li.appendChild(v);
+        lista.appendChild(li);
+      });
+    }
+  }
+
+  $('btn-revisar').addEventListener('click', function () {
+    if (estado.marcas.length === 0) {
+      $('conteo').textContent = 'Marca al menos una frase que te parezca sospechosa antes de revisar.';
+      return;
+    }
+    estado.revisado = true;
+    estado.yaReviso = true;
+    estado.aciertos = FRASES.filter(function (f, i) { return f.err && estado.marcas.indexOf(i) !== -1; }).length;
+    guardar();
+    pintarCaso();
+    $('puntaje').focus({ preventScroll: true });
+    $('resultado').scrollIntoView({ block: 'start' });
+  });
+  $('btn-reintentar').addEventListener('click', function () {
+    estado.revisado = false;
+    estado.marcas = [];
+    guardar();
+    pintarCaso();
+    $('zona-respuesta').scrollIntoView({ block: 'start' });
+    spans[0].focus({ preventScroll: true });
+  });
+  $('btn-copiar-laura').addEventListener('click', function () {
+    copiar($('peticion-laura').textContent.trim(), $('peticion-laura'), $('estado-laura'));
+  });
+
+  /* ---------- Paso 3: caso propio ---------- */
+  IDEAS.forEach(function (idea, n) {
+    var li = crear('li');
+    var b = crear('button', 'ficha', idea.n);
+    b.type = 'button';
+    b.dataset.idea = n;
+    li.appendChild(b);
+    $('ideas').appendChild(li);
+  });
+  $('ideas').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.ficha');
+    if (!b) return;
+    var idea = IDEAS[Number(b.dataset.idea)];
+    var propio = (estado.necesito.trim() || estado.espero.trim()) && !IDEAS.some(function (x) {
+      return x.necesito === estado.necesito && x.espero === estado.espero;
+    });
+    if (propio && !window.confirm('Esto reemplaza lo que escribiste en la parte A. ¿Quieres continuar?')) return;
+    estado.necesito = idea.necesito;
+    estado.espero = idea.espero;
+    guardar();
+    pintarCampos();
+    pintarSalidas();
+    $('necesito').focus();
+  });
+
+  SUGERENCIAS.forEach(function (texto) {
+    var li = crear('li');
+    var b = crear('button', 'ficha', texto);
+    b.type = 'button';
+    li.appendChild(b);
+    $('sugerencias').appendChild(li);
+  });
+  function tieneCriterio(texto) {
+    return estado.criterios.toLowerCase().indexOf(texto.toLowerCase()) !== -1;
+  }
+  $('sugerencias').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.ficha');
+    if (!b) return;
+    var texto = b.textContent;
+    if (tieneCriterio(texto)) return;
+    var actual = estado.criterios.replace(/\s+$/, '');
+    estado.criterios = (actual ? actual + '\n' : '') + '- ' + texto;
+    guardar();
+    pintarCampos();
+    pintarSalidas();
+  });
+
+  function armarPeticion() {
+    var partes = [];
+    if (estado.contexto.trim()) partes.push('Contexto: ' + estado.contexto.trim());
+    if (estado.necesito.trim()) partes.push('Lo que necesito: ' + estado.necesito.trim());
+    if (estado.espero.trim()) partes.push('Lo que espero recibir: ' + estado.espero.trim());
+    if (estado.condiciones.trim()) partes.push('Condiciones: ' + estado.condiciones.trim());
+    return partes.join('\n\n');
+  }
+  $('btn-copiar-peticion').addEventListener('click', function () {
+    var texto = armarPeticion();
+    if (!texto) {
+      $('estado-peticion').textContent = 'Todavía no hay nada para copiar. Llena primero los campos de arriba.';
+      return;
+    }
+    copiar(texto, $('peticion'), $('estado-peticion'));
+  });
+
+  /* ---------- Paso 4: resumen ---------- */
+  function o(valor) { return valor && String(valor).trim() ? String(valor).trim() : '(sin responder)'; }
+  function armarResumen() {
+    var fecha = '';
+    try { fecha = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { fecha = ''; }
+    var l = [];
+    l.push('MI LABORATORIO DE IA · SESIÓN 1');
+    if (fecha) l.push(fecha);
+    l.push('');
+    l.push('Antes de usar la IA me hago dos preguntas:');
+    l.push('1. ¿Para qué la necesito?');
+    l.push('2. ¿Cómo sabré si el resultado sirve?');
+    l.push('');
+    l.push('HERRAMIENTA');
+    l.push(o(estado.herramienta) + (estado.listo ? ' (sesión iniciada)' : ''));
+    l.push('');
+    l.push('CASO GUIADO: LA FIESTA DE LAURA');
+    l.push(estado.aciertos == null ? '(todavía no revisé la respuesta de ejemplo)'
+      : 'Encontré ' + estado.aciertos + ' de ' + TOTAL_ERRORES + ' errores en la respuesta de ejemplo.');
+    l.push('Lo que verifiqué con mi IA:');
+    CHEQUEOS.forEach(function (c) { l.push('- ' + c.n + ': ' + o(estado.chk[c.k])); });
+    l.push('');
+    l.push('MI CASO PROPIO');
+    l.push('Lo que necesito resolver: ' + o(estado.necesito));
+    l.push('El resultado que espero recibir: ' + o(estado.espero));
+    l.push('Cómo sabré si sirve:');
+    l.push(o(estado.criterios));
+    l.push('');
+    l.push('MI PETICIÓN');
+    l.push(o(armarPeticion()));
+    l.push('');
+    l.push('MI VEREDICTO');
+    l.push(o(estado.veredicto));
+    l.push('');
+    l.push('LO QUE ENCONTRÉ AL VERIFICAR');
+    l.push(o(estado.hallazgos));
+    l.push('');
+    l.push('LO QUE HARÉ DIFERENTE LA PRÓXIMA VEZ');
+    l.push(o(estado.compromiso));
+    return l.join('\n');
+  }
+  $('btn-copiar-resumen').addEventListener('click', function () {
+    copiar(armarResumen(), $('texto-resumen'), $('estado-resumen'));
+  });
+  $('btn-descargar').addEventListener('click', function () {
+    try {
+      var blob = new Blob(['﻿' + armarResumen().replace(/\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = crear('a');
+      a.href = url;
+      a.download = 'mi-laboratorio-ia.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      $('estado-resumen').textContent = 'Se descargó el archivo mi-laboratorio-ia.txt.';
+    } catch (e) {
+      seleccionar($('texto-resumen'));
+      $('estado-resumen').textContent = 'No se pudo descargar en este dispositivo. El texto quedó seleccionado para que lo copies.';
+    }
+  });
+
+  /* ---------- Campos: del estado a la página y al revés ---------- */
+  function pintarCampos() {
+    todos('[data-campo]').forEach(function (c) {
+      if (c.value !== estado[c.dataset.campo]) c.value = estado[c.dataset.campo];
+    });
+    todos('input[type="radio"]').forEach(function (r) {
+      var v = r.name.indexOf('chk-') === 0 ? estado.chk[r.name.slice(4)] : estado[r.name];
+      r.checked = (r.value === v);
+    });
+    $('listo').checked = !!estado.listo;
+  }
+  function pintarSalidas() {
+    var texto = armarPeticion();
+    var caja = $('peticion');
+    caja.textContent = texto || 'Tu petición aparecerá aquí a medida que llenes los campos.';
+    caja.classList.toggle('vacia', !texto);
+    $('texto-resumen').textContent = armarResumen();
+    todos('#sugerencias .ficha').forEach(function (b) {
+      b.setAttribute('aria-pressed', tieneCriterio(b.textContent) ? 'true' : 'false');
+    });
+    todos('#ideas .ficha').forEach(function (b) {
+      var idea = IDEAS[Number(b.dataset.idea)];
+      b.setAttribute('aria-pressed', idea.necesito === estado.necesito && idea.espero === estado.espero ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('input', function (ev) {
+    var c = ev.target;
+    if (c.dataset && c.dataset.campo) {
+      estado[c.dataset.campo] = c.value;
+      guardar();
+      pintarSalidas();
+    }
+  });
+  document.addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (c.type === 'radio') {
+      if (c.name.indexOf('chk-') === 0) estado.chk[c.name.slice(4)] = c.value; else estado[c.name] = c.value;
+    } else if (c.id === 'listo') {
+      estado.listo = c.checked;
+    } else { return; }
+    guardar();
+    pintarSalidas();
+  });
+
+  /* ---------- Navegación por hash ---------- */
+  var secciones = todos('.paso');
+  var itemsNav = todos('#nav-pasos li');
+  function irA(id, conFoco) {
+    var n = PASOS.indexOf(id);
+    if (n === -1) { n = 0; id = PASOS[0]; }
+    secciones.forEach(function (s) { s.hidden = (s.dataset.paso !== id); });
+    itemsNav.forEach(function (li, i) {
+      li.classList.toggle('actual', i === n);
+      li.classList.toggle('hecho', i < n);
+      var a = li.querySelector('a');
+      if (i === n) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current');
+    });
+    $('btn-atras').hidden = (n === 0);
+    $('btn-continuar').hidden = (n === PASOS.length - 1);
+    estado.paso = id;
+    guardar();
+    pintarSalidas();
+    if (conFoco) {
+      window.scrollTo(0, 0);
+      var h = secciones[n].querySelector('h2');
+      if (h) h.focus({ preventScroll: true });
+    }
+  }
+  function pasoDelHash() { return decodeURIComponent(window.location.hash.replace(/^#/, '')); }
+  window.addEventListener('hashchange', function () { irA(pasoDelHash(), true); });
+  $('btn-atras').addEventListener('click', function () {
+    var n = PASOS.indexOf(estado.paso);
+    if (n > 0) window.location.hash = '#' + PASOS[n - 1];
+  });
+  $('btn-continuar').addEventListener('click', function () {
+    var n = PASOS.indexOf(estado.paso);
+    if (n < PASOS.length - 1) window.location.hash = '#' + PASOS[n + 1];
+  });
+
+  $('btn-borrar').addEventListener('click', function () {
+    if (!window.confirm('Se borrarán todas tus respuestas en este dispositivo. ¿Quieres continuar?')) return;
+    try { window.localStorage.removeItem(CLAVE); } catch (e) { /* nada */ }
+    estado = inicial();
+    todos('.estado').forEach(function (e) { e.textContent = ''; });
+    pintarCampos();
+    pintarCaso();
+    if (pasoDelHash() === 'preparar') irA('preparar', true); else window.location.hash = '#preparar';
+  });
+
+  /* ---------- Arranque ---------- */
+  pintarCampos();
+  pintarCaso();
+  var primero = pasoDelHash();
+  if (PASOS.indexOf(primero) === -1) {
+    primero = PASOS.indexOf(estado.paso) !== -1 ? estado.paso : PASOS[0];
+    try { window.history.replaceState(null, '', '#' + primero); } catch (e) { /* nada */ }
+  }
+  irA(primero, false);
+})();
+</script>
+</body>
+</html>

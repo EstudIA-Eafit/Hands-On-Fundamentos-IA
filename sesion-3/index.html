@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Práctica de la sesión 3 de Fundamentos de IA: verificar afirmaciones con un expediente y construir respuestas trazables.">
+<title>Sesión 3 · Fundamentos de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #faf6ee;
+  --superficie: #ffffff;
+  --hundido: #f1ebdf;
+  --tinta: #1c2430;
+  --suave: #4f5a6b;
+  --linea: #d5ccba;
+  --primario: #0f5e5a;
+  --primario-tinta: #ffffff;
+  --primario-suave: #dcefec;
+  --marcador: #ffe14d;
+  --marcador-tinta: #1c1a05;
+  --aviso-fondo: #fff4c7;
+  --sombra: 0 1px 2px rgba(28, 36, 48, .06), 0 6px 20px rgba(28, 36, 48, .06);
+  /* Estados de una afirmación: mismo color, ícono y nombre en toda la página */
+  --conf: #1b6e3c;   --conf-fondo: #d9f2e0;   --conf-tinta: #ffffff;
+  --contra: #ad3118; --contra-fondo: #fbded6; --contra-tinta: #ffffff;
+  --duda: #8a5300;   --duda-fondo: #fdecc8;   --duda-tinta: #ffffff;
+  --nada: #5b6575;   --nada-fondo: #e4e7ee;   --nada-tinta: #ffffff;
+  --titulos: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #12171d;
+    --superficie: #1b222b;
+    --hundido: #151b22;
+    --tinta: #eef1f5;
+    --suave: #aab4c3;
+    --linea: #364150;
+    --primario: #74d9cf;
+    --primario-tinta: #082422;
+    --primario-suave: #17393a;
+    --marcador: #f5d63a;
+    --marcador-tinta: #1c1a05;
+    --aviso-fondo: #3a3211;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+    --conf: #7fdc9f;   --conf-fondo: #173d27;   --conf-tinta: #0b1f12;
+    --contra: #ff9d85; --contra-fondo: #4a2018; --contra-tinta: #2a0d07;
+    --duda: #f2c062;   --duda-fondo: #3d2e10;   --duda-tinta: #261a03;
+    --nada: #aab4c3;   --nada-fondo: #2b3340;   --nada-tinta: #12171d;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font-family: var(--texto); font-size: 1rem; line-height: 1.55;
+}
+h1, h2, h3 { font-family: var(--titulos); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0 0 .8rem; }
+a { color: var(--primario); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 3px; border-radius: 6px; }
+h2:focus, h3:focus { outline: none; }
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.ancho { max-width: 44rem; margin: 0 auto; padding: 0 1rem; }
+
+/* Encabezados */
+.cabecera { padding: 1.1rem 0 .4rem; }
+.volver { margin: 0 0 .7rem; font-size: .95rem; }
+.volver a { display: inline-block; padding: .3rem 0; font-weight: 700; text-decoration: none; }
+.volver a:hover { text-decoration: underline; }
+.sobretitulo {
+  font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--suave); font-weight: 700; margin: 0 0 .3rem;
+}
+.cabecera h1 { font-size: clamp(1.5rem, 6vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; }
+.barra { padding: .7rem 0 .5rem; }
+.barra .ancho { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .9rem; }
+.barra a { font-weight: 700; text-decoration: none; padding: .3rem 0; }
+.barra a:hover { text-decoration: underline; }
+.barra span { color: var(--suave); font-weight: 700; font-size: .93rem; }
+
+/* Navegación de pasos */
+.pasos {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--fondo); border-bottom: 1px solid var(--linea); padding: .5rem 0;
+}
+.pasos ol { list-style: none; margin: 0; padding: 0; display: flex; gap: .4rem; }
+.pasos li { flex: 0 0 auto; min-width: 0; }
+.pasos li.actual { flex: 1 1 auto; }
+.pasos a {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 3rem; padding: .35rem .6rem .35rem .4rem;
+  border-radius: 999px; border: 1px solid var(--linea);
+  background: var(--superficie); color: var(--tinta); text-decoration: none;
+}
+.pasos .num {
+  flex: none; width: 2rem; height: 2rem; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700;
+  background: var(--hundido); color: var(--tinta);
+}
+.pasos .txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.pasos .nom { font-weight: 700; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pasos .tmp { font-size: .76rem; color: var(--suave); white-space: nowrap; }
+.pasos li.hecho .num { background: var(--primario-suave); color: var(--primario); }
+.pasos li.actual a { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.pasos li.actual .num { background: var(--primario-tinta); color: var(--primario); }
+.pasos li.actual .tmp { color: inherit; opacity: .9; }
+@media (max-width: 43.99rem) {
+  .pasos ol { align-items: stretch; }
+  .pasos a { height: 100%; border-radius: 16px; }
+  .pasos li.actual a { padding: .35rem .5rem .35rem .4rem; gap: .4rem; }
+  .pasos li.actual .nom { white-space: normal; overflow: visible; font-size: .82rem; }
+  .pasos li:not(.actual) a { flex-direction: column; justify-content: center; gap: .1rem; padding: .3rem .2rem; min-width: 2.8rem; }
+  .pasos li:not(.actual) .num { width: 1.6rem; height: 1.6rem; font-size: .9rem; }
+  .pasos li:not(.actual) .tmp { font-size: .7rem; }
+  .pasos li:not(.actual) .nom {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+}
+@media (min-width: 44rem) {
+  .pasos li, .pasos li.actual { flex: 1 1 0; }
+  .pasos .nom { white-space: normal; }
+}
+
+/* Contenido */
+main { padding: 1.2rem 0 1rem; min-width: 0; }
+.paso-cab { margin-bottom: 1rem; }
+.paso-cab .meta { color: var(--suave); font-weight: 700; font-size: .88rem; margin: 0 0 .2rem; }
+.paso-cab h2 { font-size: clamp(1.45rem, 5.5vw, 1.85rem); font-weight: 800; }
+.paso-cab p { margin: .5rem 0 0; color: var(--suave); }
+h3 { font-size: 1.18rem; font-weight: 600; margin-bottom: .5rem; }
+
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
+}
+.tarjeta > :last-child { margin-bottom: 0; }
+.tarjeta ol, .tarjeta ul { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.tarjeta li { margin-bottom: .25rem; }
+.nota {
+  background: var(--aviso-fondo); border-left: 5px solid var(--marcador);
+  border-radius: 10px; padding: .75rem .9rem; margin-bottom: 1rem;
+}
+.nota > :last-child { margin-bottom: 0; }
+.cierre {
+  font-family: var(--titulos); font-weight: 600; font-size: 1.12rem; line-height: 1.3;
+  border-left: 5px solid var(--marcador); padding: .3rem 0 .3rem .8rem; margin: 0 0 .8rem;
+}
+.rotulo {
+  display: inline-block; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--marcador); color: var(--marcador-tinta); border-radius: 6px; padding: .2rem .5rem; margin-bottom: .5rem;
+}
+.respuesta-ia {
+  margin: 0 0 .8rem; padding: .85rem .95rem; background: var(--hundido);
+  border-radius: 14px; border: 1px dashed var(--linea);
+}
+.respuesta-ia mark {
+  background: var(--aviso-fondo); color: inherit; border-radius: 4px; padding: .05em .15em;
+  box-shadow: inset 0 -3px var(--marcador); -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  border: 2px solid var(--primario); background: var(--primario); color: var(--primario-tinta);
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;
+}
+.boton.claro { background: transparent; color: var(--primario); }
+.boton.chico { min-height: 2.6rem; padding: .35rem .9rem; font-size: .95rem; }
+.boton:active { transform: translateY(1px); }
+.fila { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: .8rem; }
+.estado { color: var(--suave); font-size: .95rem; margin: 0 0 .8rem; }
+.estado:empty { display: none; }
+
+/* Campos */
+.campo { margin-bottom: .9rem; }
+.campo > label { display: block; font-weight: 700; margin-bottom: .3rem; }
+.ayuda { display: block; font-weight: 400; color: var(--suave); font-size: .93rem; }
+textarea, select, input[type="text"] {
+  width: 100%; font: inherit; color: var(--tinta); background: var(--fondo);
+  border: 2px solid var(--linea); border-radius: 12px; padding: .6rem .7rem;
+}
+textarea { min-height: 5.2rem; resize: vertical; }
+textarea.alto { min-height: 9rem; }
+select, input[type="text"] { min-height: 3rem; }
+textarea:focus-visible, select:focus-visible, input[type="text"]:focus-visible { border-color: var(--primario); outline-offset: 1px; }
+textarea::placeholder, input::placeholder { color: var(--suave); opacity: .85; }
+fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: .4rem; }
+
+.opciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.opciones label { position: relative; display: block; flex: 1 1 auto; cursor: pointer; }
+.opciones input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opciones label > span {
+  display: flex; align-items: center; justify-content: center; gap: .45rem; text-align: center;
+  min-height: 2.9rem; padding: .45rem .9rem; border-radius: 12px;
+  border: 2px solid var(--linea); background: var(--superficie); font-weight: 700;
+}
+.opciones input:checked + span { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.opciones input:focus-visible + span { outline: 3px solid var(--primario); outline-offset: 3px; }
+.opciones.estados { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); }
+.opciones.estados label > span { justify-content: flex-start; text-align: left; padding: .45rem .7rem; }
+
+.casilla {
+  display: flex; gap: .7rem; align-items: flex-start; cursor: pointer;
+  padding: .65rem .8rem; border: 2px solid var(--linea); border-radius: 14px;
+  background: var(--superficie); font-weight: 700; margin-bottom: .5rem;
+}
+.casilla input { flex: none; width: 1.5rem; height: 1.5rem; margin: .1rem 0 0; accent-color: var(--primario); }
+
+.salida {
+  white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0 0 .8rem;
+  background: var(--hundido); border: 1px dashed var(--linea); border-radius: 12px;
+  padding: .8rem .9rem; -webkit-user-select: text; user-select: text;
+}
+.salida.chica { font-size: .9rem; max-height: 20rem; overflow: auto; }
+details { margin-bottom: .8rem; }
+summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .45rem 0; }
+
+/* Estados: ícono + nombre + color */
+.ico {
+  display: inline-grid; place-items: center; flex: none;
+  width: 1.45rem; height: 1.45rem; border-radius: 50%;
+}
+.ico svg { width: 1rem; height: 1rem; display: block; }
+.ico.est-confirmada { background: var(--conf); color: var(--conf-tinta); }
+.ico.est-contradicha { background: var(--contra); color: var(--contra-tinta); }
+.ico.est-noconf { background: var(--duda); color: var(--duda-tinta); }
+.ico.est-nomenciono { background: var(--nada); color: var(--nada-tinta); }
+.estados input:checked + span.est-confirmada { background: var(--conf-fondo); border-color: var(--conf); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--conf); }
+.estados input:checked + span.est-contradicha { background: var(--contra-fondo); border-color: var(--contra); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--contra); }
+.estados input:checked + span.est-noconf { background: var(--duda-fondo); border-color: var(--duda); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--duda); }
+.estados input:checked + span.est-nomenciono { background: var(--nada-fondo); border-color: var(--nada); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--nada); }
+.chip-estado {
+  display: inline-flex; align-items: center; gap: .4rem; font-weight: 700;
+  padding: .15rem .6rem .15rem .2rem; border-radius: 999px; border: 2px solid;
+}
+.chip-estado.est-confirmada { background: var(--conf-fondo); border-color: var(--conf); }
+.chip-estado.est-contradicha { background: var(--contra-fondo); border-color: var(--contra); }
+.chip-estado.est-noconf { background: var(--duda-fondo); border-color: var(--duda); }
+.chip-estado.est-nomenciono { background: var(--nada-fondo); border-color: var(--nada); }
+.leyenda-estados { list-style: none; padding: 0 !important; margin: 0 0 .8rem !important; display: grid; gap: .55rem; }
+.leyenda-estados li { display: flex; gap: .6rem; align-items: flex-start; margin: 0; }
+.leyenda-estados b { display: block; }
+
+/* Portada */
+.ideas { margin: 0 0 1.2rem; padding-left: 1.2rem; }
+.ideas li { margin-bottom: .4rem; }
+.menu { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 1rem; }
+.lab {
+  position: relative; background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; box-shadow: var(--sombra);
+}
+.lab:hover, .lab:focus-within { border-color: var(--primario); }
+.lab h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: .35rem; }
+.lab h3 a { color: inherit; text-decoration: none; }
+.lab h3 a::after { content: ""; position: absolute; inset: 0; border-radius: 18px; }
+.lab p { margin-bottom: .5rem; }
+.lab .datos { color: var(--suave); font-size: .93rem; font-weight: 700; margin-bottom: .9rem; }
+.lab .abrir {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  background: var(--primario); color: var(--primario-tinta); font-weight: 700;
+}
+
+/* Expediente */
+.expediente { min-width: 0; }
+.exp-toggle { width: 100%; justify-content: space-between; margin: 1rem 0 0; }
+.exp-toggle::after { content: "+"; font-size: 1.4rem; line-height: 1; }
+.expediente.abierto .exp-toggle::after { content: "\2212"; }
+.exp-cuerpo {
+  display: none; margin-top: .8rem;
+  background: var(--hundido); border: 1px solid var(--linea); border-radius: 18px; padding: .9rem;
+}
+.expediente.abierto .exp-cuerpo { display: block; }
+.exp-cuerpo h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .4rem; }
+.exp-cuerpo .intro { font-size: .95rem; color: var(--suave); }
+.filtro { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .8rem; padding: 0; list-style: none; }
+.filtro button {
+  font: inherit; font-size: .9rem; font-weight: 700; color: var(--tinta); cursor: pointer;
+  min-height: 2.6rem; min-width: 2.9rem; padding: .3rem .7rem; border-radius: 999px;
+  border: 1.5px solid var(--primario); background: var(--superficie);
+}
+.filtro button[aria-pressed="true"] { background: var(--primario); color: var(--primario-tinta); }
+.doc {
+  background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px;
+  padding: .8rem .9rem; margin-bottom: .8rem;
+}
+.doc:last-child { margin-bottom: 0; }
+.doc-cab { display: flex; gap: .55rem; align-items: baseline; margin-bottom: .45rem; }
+.codigo {
+  flex: none; font-family: var(--titulos); font-weight: 800; font-size: .95rem; white-space: nowrap;
+  background: var(--primario); color: var(--primario-tinta); border-radius: 6px; padding: .05rem .45rem;
+}
+.doc h3 { font-size: 1.08rem; margin: 0; }
+.meta-lista { display: grid; grid-template-columns: auto 1fr; gap: .1rem .55rem; margin: 0 0 .6rem; font-size: .93rem; }
+.meta-lista dt { font-weight: 700; color: var(--suave); }
+.meta-lista dd { margin: 0; }
+.doc ol { list-style: none; margin: 0; padding: 0; }
+.doc li { border-top: 1px dashed var(--linea); padding: .4rem 0; margin: 0; }
+.doc li:last-child { padding-bottom: 0; }
+.doc li b { font-weight: 700; }
+
+/* Laboratorio 1 */
+.afirmacion .que { font-family: var(--titulos); font-weight: 600; font-size: 1.12rem; line-height: 1.3; }
+.ficha-doc {
+  background: var(--primario-suave); border-radius: 12px; padding: .7rem .8rem; margin-bottom: .9rem;
+}
+.ficha-doc .meta-lista { margin-bottom: .7rem; }
+.ficha-doc fieldset:last-child { margin-bottom: 0; }
+.progreso { margin: 0 0 1rem; }
+.progreso .pista { height: .75rem; background: var(--hundido); border: 1px solid var(--linea); border-radius: 999px; overflow: hidden; }
+.progreso .lleno { height: 100%; width: 0; background: var(--primario); border-radius: 999px; transition: width .2s; }
+.progreso p { margin: .35rem 0 0; font-weight: 700; }
+.reto-respuesta { border-radius: 12px; padding: .7rem .85rem; margin: .2rem 0 0; }
+.reto-respuesta.bien { background: var(--conf-fondo); border-left: 5px solid var(--conf); }
+.reto-respuesta.mal { background: var(--contra-fondo); border-left: 5px solid var(--contra); }
+.reto-respuesta p:last-child { margin: 0; }
+.puntaje { font-family: var(--titulos); font-weight: 800; font-size: 1.5rem; margin-bottom: .3rem; }
+.clave-lista { list-style: none; padding: 0 !important; margin: 0 0 1rem !important; display: grid; gap: .7rem; }
+.clave-lista > li { border: 1px solid var(--linea); border-radius: 12px; padding: .75rem .85rem; margin: 0; background: var(--superficie); }
+.clave-lista .que { font-weight: 700; margin-bottom: .45rem; }
+.clave-lista p { margin: .35rem 0 0; }
+.marca { font-weight: 700; }
+.marca.si { color: var(--conf); }
+.marca.no { color: var(--contra); }
+
+/* Laboratorio 2 */
+.tema .lado-tema { border-top: 1px dashed var(--linea); padding-top: .8rem; margin-top: .2rem; }
+.tema .ref { background: var(--primario-suave); border-radius: 12px; padding: .7rem .8rem; margin: 0 0 .9rem; }
+.tema-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: .7rem; }
+.tema-cab h3 { margin: 0; }
+.coincide { border-left: 6px solid var(--duda); }
+.lista-corr { list-style: none; padding: 0 !important; margin: 0 0 .5rem !important; display: grid; gap: .7rem; }
+.lista-corr > li { border: 1px solid var(--linea); border-radius: 12px; padding: .7rem .8rem; margin: 0; background: var(--fondo); }
+.lista-corr .campo { margin: .6rem 0 0; }
+.lista-corr .dijo { color: var(--suave); margin: .2rem 0 0; }
+.grupo-cab { display: flex; align-items: center; gap: .55rem; margin-bottom: .6rem; }
+.grupo-cab h3 { margin: 0; }
+.vacio { color: var(--suave); font-style: italic; margin: 0; }
+
+/* Pie */
+.avance { display: flex; justify-content: space-between; gap: .6rem; margin: 1.4rem 0 1rem; }
+.avance .boton { min-width: 8rem; }
+.avance .derecha { margin-left: auto; }
+.pie { border-top: 1px solid var(--linea); padding: 1rem 0 2rem; color: var(--suave); font-size: .92rem; }
+.pie p { margin: 0 0 .4rem; }
+.enlace {
+  font: inherit; color: var(--suave); background: none; border: 0; padding: .4rem 0;
+  text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}
+
+/* Pantallas anchas: el expediente queda fijo al lado del trabajo */
+@media (min-width: 64rem) {
+  body.con-panel .ancho { max-width: 78rem; }
+  body.con-panel .marco {
+    display: grid; grid-template-columns: minmax(0, 1fr) 27rem;
+    grid-template-areas: "trabajo panel"; gap: 0 1.6rem; align-items: start;
+  }
+  body.con-panel main { grid-area: trabajo; }
+  body.con-panel .expediente {
+    grid-area: panel; position: sticky; top: 4.9rem; margin-top: 1.2rem;
+    max-height: calc(100vh - 5.8rem); overflow: auto; overscroll-behavior: contain;
+    border-radius: 18px;
+  }
+  .exp-toggle { display: none; }
+  .exp-cuerpo { display: block; margin-top: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .vista { animation: entra .25s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<header class="cabecera" id="cabecera">
+  <div class="ancho">
+    <p class="volver"><a href="../index.html">‹ Todos los laboratorios</a></p>
+    <p class="sobretitulo">Fundamentos de IA · Sesión 3 de 8</p>
+    <h1>Verificar afirmaciones y construir respuestas trazables</h1>
+  </div>
+</header>
+
+<div class="barra" id="barra" hidden>
+  <div class="ancho">
+    <a href="#inicio">‹ Sesión 3</a>
+    <span id="barra-titulo"></span>
+  </div>
+</div>
+
+<nav class="pasos" id="nav" aria-label="Pasos" hidden>
+  <div class="ancho"><ol id="nav-pasos"></ol></div>
+</nav>
+
+<div class="marco ancho">
+
+  <aside class="expediente" id="expediente" aria-label="Expediente de la feria" hidden>
+    <button type="button" class="boton claro exp-toggle" id="exp-toggle" aria-expanded="false" aria-controls="exp-cuerpo">Ver expediente</button>
+    <div class="exp-cuerpo" id="exp-cuerpo">
+      <h2>Expediente</h2>
+      <p class="intro">Documentos ficticios de una feria de barrio. Todo lo que necesitas está aquí; no hace falta buscar en internet.</p>
+      <p class="intro"><strong>Vigencia</strong> es el tiempo durante el cual un documento rige. <strong>Alcance</strong> es a quién o a qué se aplica.</p>
+      <p id="exp-encabezado"></p>
+      <ul class="filtro" id="filtro" aria-label="Ver un documento a la vez"></ul>
+      <div id="exp-docs"></div>
+    </div>
+  </aside>
+
+<main>
+
+  <!-- PORTADA -->
+  <section class="vista" data-vista="inicio" aria-labelledby="t-inicio">
+    <h2 id="t-inicio" class="oculto-visual" tabindex="-1">Inicio de la sesión 3</h2>
+    <p><strong>Las ideas de hoy</strong></p>
+    <ul class="ideas">
+      <li>Una respuesta se divide en afirmaciones, y cada dato se revisa por separado, aunque estén en la misma oración.</li>
+      <li>Cada afirmación queda confirmada, contradicha o no confirmada. Que un dato no aparezca no lo vuelve falso.</li>
+      <li>Por cada afirmación anotas de dónde sale. Eso es trazabilidad.</li>
+      <li>Si varios textos repiten un dato que viene del mismo origen, eso no lo confirma.</li>
+    </ul>
+
+    <ul class="menu" aria-label="Partes de la práctica">
+      <li class="lab">
+        <span class="rotulo">Laboratorio 1 · Individual</span>
+        <h3><a href="#laboratorio-1">Verificar una respuesta preparada</a></h3>
+        <p class="datos">3 pasos · 30 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el laboratorio 1</span>
+      </li>
+      <li class="lab">
+        <span class="rotulo">Laboratorio 2 · En parejas</span>
+        <h3><a href="#laboratorio-2">Verificar la IA real y corregir</a></h3>
+        <p class="datos">5 pasos · 40 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el laboratorio 2</span>
+      </li>
+    </ul>
+
+    <div class="nota">
+      <p><strong>Se trabaja solo con un expediente ficticio</strong>, sin buscar en internet. Tus respuestas en esta página se guardan solas.</p>
+    </div>
+  </section>
+
+  <!-- ============ LABORATORIO 1 ============ -->
+
+  <section class="vista" data-vista="laboratorio-1-paso-1" aria-labelledby="t-a1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Paso 1 de 3 · 5 minutos</p>
+      <h2 id="t-a1" tabindex="-1">La respuesta</h2>
+      <p>Una persona que quiere poner un puesto le preguntó a una IA: <strong>¿Qué necesito saber para participar como expositor en la feria?</strong> Esta fue la respuesta.</p>
+    </div>
+
+    <div class="tarjeta">
+      <span class="rotulo">Respuesta preparada para el ejercicio</span>
+      <p class="respuesta-ia" id="respuesta-ia"></p>
+      <p class="ayuda">No viene de una IA real: la escribimos para practicar. La parte resaltada es la primera oración.</p>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Mini reto</h3>
+      <fieldset>
+        <legend>¿Cuántos datos distintos hay en la primera oración?</legend>
+        <div class="opciones">
+          <label><input type="radio" name="l1.reto" value="1"><span>1</span></label>
+          <label><input type="radio" name="l1.reto" value="2"><span>2</span></label>
+          <label><input type="radio" name="l1.reto" value="3"><span>3</span></label>
+          <label><input type="radio" name="l1.reto" value="4"><span>4</span></label>
+        </div>
+      </fieldset>
+      <div id="reto-respuesta" class="reto-respuesta" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-1-paso-2" aria-labelledby="t-a2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Paso 2 de 3 · 20 minutos</p>
+      <h2 id="t-a2" tabindex="-1">Verifica cada afirmación</h2>
+      <p>La respuesta quedó dividida en 11 afirmaciones. Busca cada una en el expediente.</p>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Los tres estados</h3>
+      <ul class="leyenda-estados" id="leyenda-estados"></ul>
+      <p>Que un dato no aparezca no lo vuelve falso: solo significa que no se sabe.</p>
+      <p>Por cada afirmación anota la fuente, el apartado, la fecha de emisión, la vigencia y el alcance. Eso es <strong>trazabilidad</strong>: que cualquiera pueda seguir el rastro del dato.</p>
+      <p>Una <strong>alucinación</strong> es contenido incorrecto o sin sustento que parece una respuesta válida.</p>
+    </div>
+
+    <div class="progreso" id="progreso">
+      <div class="pista" role="progressbar" aria-valuemin="0" aria-valuemax="11" aria-valuenow="0" aria-labelledby="progreso-txt" id="progreso-barra"><div class="lleno" id="progreso-lleno"></div></div>
+      <p id="progreso-txt">0 de 11 afirmaciones revisadas</p>
+    </div>
+    <p class="ayuda" style="margin-top:-.6rem;margin-bottom:1rem">Una afirmación cuenta como revisada cuando tiene estado y fuente.</p>
+
+    <div id="afirmaciones"></div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-1-paso-3" aria-labelledby="t-a3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Paso 3 de 3 · 5 minutos</p>
+      <h2 id="t-a3" tabindex="-1">Compara con la clave</h2>
+      <p>Mira en qué coincidiste y dónde no. Lo importante es entender por qué.</p>
+    </div>
+
+    <p class="estado" id="antes-clave"></p>
+    <div class="fila" id="fila-ver-clave">
+      <button type="button" class="boton" id="btn-ver-clave">Ver la clave</button>
+    </div>
+
+    <div id="clave-zona" hidden>
+      <div class="tarjeta">
+        <h3 class="puntaje" id="puntaje-l1" tabindex="-1"></h3>
+        <p id="puntaje-fuentes"></p>
+      </div>
+      <ol class="clave-lista" id="clave-lista"></ol>
+      <p class="cierre">La respuesta sonaba segura de principio a fin y solo 3 de sus 11 afirmaciones están confirmadas.</p>
+      <div class="tarjeta">
+        <h3>Tu resumen</h3>
+        <pre class="salida chica" id="resumen-l1" tabindex="0"></pre>
+        <div class="fila">
+          <button type="button" class="boton" id="btn-copiar-l1">Copiar</button>
+          <button type="button" class="boton claro" id="btn-descargar-l1">Descargar como .txt</button>
+        </div>
+        <p class="estado" id="estado-l1" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LABORATORIO 2 ============ -->
+
+  <section class="vista" data-vista="laboratorio-2-paso-1" aria-labelledby="t-b1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 1 de 5 · 8 minutos</p>
+      <h2 id="t-b1" tabindex="-1">Pregúntale a tu IA</h2>
+    </div>
+
+    <div class="nota">
+      <p><strong>Cómo se trabaja.</strong> <span data-solo="Trabajas por tu cuenta. Vas a enviar el mismo texto dos veces, en dos chats nuevos de tu IA, y a comparar los dos intentos.">Están en una sala de Zoom de dos personas. Una persona comparte pantalla y llena esta página. La otra le envía su respuesta por el chat de la sala.</span></p>
+    </div>
+    <label class="casilla">
+      <input type="checkbox" data-campo="l2.solo">
+      <span>Estoy trabajando solo</span>
+    </label>
+
+    <div class="tarjeta">
+      <p data-solo="Copia el expediente con la pregunta y envíalo a tu IA. Luego abre un chat nuevo y envíalo otra vez, exactamente igual.">Copien el expediente con la pregunta. Los dos deben enviar exactamente el mismo texto, cada uno en su IA.</p>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-exp">Copiar expediente y pregunta</button>
+      </div>
+      <p class="estado" id="estado-exp" aria-live="polite"></p>
+      <details id="det-texto-exp">
+        <summary>Ver el texto que se copia</summary>
+        <pre class="salida chica" id="texto-exp" tabindex="0"></pre>
+      </details>
+    </div>
+
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="b-a">Respuesta A <span class="ayuda" data-solo="Tu primer intento.">La de quien comparte pantalla.</span></label>
+        <textarea id="b-a" class="alto" data-campo="l2.a"></textarea>
+      </div>
+      <fieldset>
+        <legend>Herramienta usada en A</legend>
+        <div class="opciones">
+          <label><input type="radio" name="l2.ha" value="Gemini"><span>Gemini</span></label>
+          <label><input type="radio" name="l2.ha" value="ChatGPT"><span>ChatGPT</span></label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="b-b">Respuesta B <span class="ayuda" data-solo="Tu segundo intento, en un chat nuevo.">La que llegó por el chat de la sala.</span></label>
+        <textarea id="b-b" class="alto" data-campo="l2.b"></textarea>
+      </div>
+      <fieldset>
+        <legend>Herramienta usada en B</legend>
+        <div class="opciones">
+          <label><input type="radio" name="l2.hb" value="Gemini"><span>Gemini</span></label>
+          <label><input type="radio" name="l2.hb" value="ChatGPT"><span>ChatGPT</span></label>
+        </div>
+      </fieldset>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-2" aria-labelledby="t-b2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 2 de 5 · 15 minutos</p>
+      <h2 id="t-b2" tabindex="-1">Verifiquen dato por dato</h2>
+      <p data-solo="Por cada tema, escribe en pocas palabras qué dijo cada intento y marca su estado. Busca primero en el expediente; abre la referencia solo para comprobar.">Por cada tema, escriban en pocas palabras qué dijo cada respuesta y marquen su estado. Busquen primero en el expediente; abran la referencia solo para comprobar.</p>
+    </div>
+
+    <details>
+      <summary>Ver la respuesta A</summary>
+      <div class="salida chica" id="ver-a"></div>
+    </details>
+    <details>
+      <summary>Ver la respuesta B</summary>
+      <div class="salida chica" id="ver-b"></div>
+    </details>
+
+    <div id="temas"></div>
+    <div id="extras"></div>
+    <div class="fila">
+      <button type="button" class="boton claro" id="btn-agregar">Agregar otra afirmación</button>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-3" aria-labelledby="t-b3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 3 de 5 · 5 minutos</p>
+      <h2 id="t-b3" tabindex="-1">¿Coincidir confirma?</h2>
+      <p>La página compara lo que escribieron en "Qué dijo" para cada tema.</p>
+    </div>
+    <div id="coincidencias"></div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-4" aria-labelledby="t-b4" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 4 de 5 · 10 minutos</p>
+      <h2 id="t-b4" tabindex="-1">Respuesta corregida</h2>
+      <p>Corregir sin pasarse de la evidencia: se mantiene lo confirmado, se corrige lo contradicho y lo no confirmado se vuelve una pregunta a la coordinación.</p>
+    </div>
+    <p class="ayuda" style="margin-bottom:1rem">Si un tema quedó confirmado en una respuesta, va a "Mantener". Si no, y alguna lo contradijo, va a "Corregir". Si solo quedó sin confirmar, va a "Preguntar".</p>
+    <div id="listas"></div>
+
+    <div class="tarjeta">
+      <h3>Redacten la respuesta corregida</h3>
+      <p class="cierre">No agregues nada que no esté en el expediente.</p>
+      <div class="campo">
+        <label for="b-corregida" data-solo="Tu respuesta corregida">Su respuesta corregida</label>
+        <textarea id="b-corregida" class="alto" data-campo="l2.corregida"></textarea>
+      </div>
+      <pre class="salida chica" id="texto-corregida" tabindex="0" hidden></pre>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-corr">Copiar</button>
+        <button type="button" class="boton claro" id="btn-descargar-corr">Descargar como .txt</button>
+      </div>
+      <p class="ayuda">Se copian la respuesta corregida y las preguntas a la coordinación.</p>
+      <p class="estado" id="estado-corr" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-5" aria-labelledby="t-b5" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 5 de 5 · 2 minutos</p>
+      <h2 id="t-b5" tabindex="-1">Para compartir</h2>
+      <p>Dos respuestas cortas para contarle al grupo.</p>
+    </div>
+    <div class="tarjeta">
+      <div class="campo">
+        <label for="b-q1" data-solo="¿En qué dato coincidieron tus dos intentos y qué estado tenía?">¿En qué dato coincidieron sus IA y qué estado tenía?</label>
+        <textarea id="b-q1" data-campo="l2.q1"></textarea>
+      </div>
+      <div class="campo">
+        <label for="b-q2" data-solo="¿Qué pregunta le harías a la coordinación?">¿Qué pregunta le harían a la coordinación?</label>
+        <textarea id="b-q2" data-campo="l2.q2"></textarea>
+      </div>
+    </div>
+    <div class="nota">
+      <p><strong data-solo="Cuando se cierren las salas, vuelve a la sala principal para las conclusiones.">Cuando se cierren las salas, vuelvan a la sala principal para las conclusiones.</strong></p>
+    </div>
+  </section>
+
+  <div class="avance" id="avance" hidden>
+    <button type="button" class="boton claro" id="btn-atras">Atrás</button>
+    <button type="button" class="boton derecha" id="btn-continuar">Continuar</button>
+  </div>
+</main>
+</div>
+
+<footer class="pie">
+  <div class="ancho">
+    <p>Tus respuestas se guardan solo en este dispositivo. Esta página no se conecta a ninguna IA.</p>
+    <button type="button" class="enlace" id="btn-borrar">Borrar mis respuestas</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     DATOS DE LA SESIÓN: expediente, respuesta preparada, clave y temas.
+     Todo el contenido editable está en este objeto.
+     ===================================================================== */
+  var DATOS = {
+    expediente: {
+      encabezado: 'Feria Comunitaria del Barrio El Mirador 2027. Organiza: Junta de Acción Comunal del barrio El Mirador. La coordinación de la feria responde las dudas.',
+      documentos: [
+        {
+          id: 'Av1', codigo: 'A v1', titulo: 'Circular 01, versión 1',
+          fechaEtiqueta: 'Emitida', fecha: '10 de enero de 2027',
+          vigencia: 'hasta la realización de la feria 2027 o hasta que sea reemplazada',
+          alcance: 'expositores y vecinos',
+          partes: [
+            { e: 'Apartado 1', t: 'Fecha: sábado 13 de marzo de 2027.' },
+            { e: 'Apartado 2', t: 'Lugar y horario: parque principal del barrio, de 9:00 a. m. a 5:00 p. m.' },
+            { e: 'Apartado 3', t: 'Cupo: 30 puestos.' },
+            { e: 'Apartado 4', t: 'Inscripción: gratuita, hasta el 26 de febrero de 2027, con la coordinación de la feria.' }
+          ]
+        },
+        {
+          id: 'Av2', codigo: 'A v2', titulo: 'Circular 01, versión 2',
+          fechaEtiqueta: 'Emitida', fecha: '1 de febrero de 2027',
+          vigencia: 'hasta la realización de la feria 2027',
+          alcance: 'expositores y vecinos',
+          partes: [
+            { e: 'Nota inicial', sep: ': ', t: '"Esta versión reemplaza a la Circular 01 v1."' },
+            { e: 'Apartado 1', t: 'Fecha: sábado 13 de marzo de 2027.' },
+            { e: 'Apartado 2', t: 'Lugar y horario: por obras en el parque principal, la feria se realizará en el salón comunal, de 10:00 a. m. a 4:00 p. m.' },
+            { e: 'Apartado 3', t: 'Cupo: 20 puestos.' },
+            { e: 'Apartado 4', t: 'Inscripción: gratuita, hasta el 26 de febrero de 2027, con la coordinación de la feria.' }
+          ]
+        },
+        {
+          id: 'B', codigo: 'B', titulo: 'Acta 03 de reunión de la Junta',
+          fechaEtiqueta: 'Emitida', fecha: '25 de enero de 2027',
+          vigencia: 'no aplica (registro de una reunión)',
+          alcance: 'uso interno de la Junta; registra lo discutido, no fija reglas',
+          partes: [
+            { e: 'Punto 1', t: 'Se informa que el parque principal tendrá obras en marzo y se evaluará cambiar el lugar de la feria.' },
+            { e: 'Punto 2', t: 'Se propone cobrar $20.000 por puesto para cubrir la decoración. Estado: pendiente de aprobación en la próxima reunión.' }
+          ]
+        },
+        {
+          id: 'C', codigo: 'C', titulo: 'Reglamento de expositores 2027',
+          fechaEtiqueta: 'Emitido', fecha: '15 de enero de 2027',
+          vigencia: 'solo para la feria 2027',
+          alcance: 'expositores de la feria, salvo donde se indique',
+          partes: [
+            { e: 'Artículo 1', t: 'Cada expositor trae su propia mesa.' },
+            { e: 'Artículo 2', t: 'Solo los puestos de comida deben presentar certificado de manipulación de alimentos al inscribirse.' },
+            { e: 'Artículo 3', t: 'Se prohíbe la venta de bebidas alcohólicas.' },
+            { e: 'Artículo 4', t: 'Cada expositor deja limpio su espacio al terminar la feria.' }
+          ]
+        },
+        {
+          id: 'D', codigo: 'D', titulo: 'Reglamento de expositores 2026',
+          fechaEtiqueta: 'Emitido', fecha: '20 de enero de 2026',
+          vigencia: 'solo para la feria 2026',
+          alcance: 'expositores de la feria 2026',
+          partes: [
+            { e: 'Artículo 1', t: 'Cobro de $15.000 por puesto.' },
+            { e: 'Artículo 2', t: 'Cada expositor trae su propia mesa.' },
+            { e: 'Artículo 3', t: 'Se prohíbe la venta de bebidas alcohólicas.' }
+          ]
+        },
+        {
+          id: 'E', codigo: 'E', titulo: 'Volante de difusión',
+          fechaEtiqueta: 'Emitido', fecha: '5 de febrero de 2027',
+          vigencia: 'no indicada',
+          alcance: 'difusión a vecinos; no es un documento oficial de reglas',
+          partes: [
+            { e: 'Texto', sep: ': ', t: '"¡Ven a la Feria Comunitaria El Mirador! Sábado 13 de marzo, en el parque principal, de 9:00 a. m. a 5:00 p. m. Emprendimientos, comida y mucho más."' },
+            { e: 'Pie', sep: ': ', t: '"Información tomada de la Circular 01."' }
+          ]
+        },
+        {
+          id: 'F', codigo: 'F', titulo: 'Mensaje del grupo de WhatsApp de vecinos',
+          fechaEtiqueta: 'Enviado', fecha: '6 de febrero de 2027, por un vecino',
+          vigencia: 'no indicada',
+          alcance: 'mensaje informal',
+          partes: [
+            { e: 'Texto', sep: ': ', t: '"Vecinos, les recuerdo que la feria es el 13 de marzo en el parque principal, según el volante que repartieron. ¡Allá nos vemos!"' }
+          ]
+        }
+      ]
+    },
+
+    pregunta: 'Pregunta: Según estos documentos, ¿dónde, cuándo y a qué hora es la feria, cuánto cuesta inscribir un puesto, qué requisitos hay para los expositores y si hay parqueadero?',
+
+    respuesta: '¡Claro! La Feria Comunitaria del Barrio El Mirador será el sábado 13 de marzo de 2027 en el parque principal, de 9:00 a. m. a 5:00 p. m. Hay 30 puestos disponibles. La inscripción cuesta $15.000 y se puede hacer hasta el 26 de febrero de 2027 en el formulario web de la Junta. Todos los expositores deben presentar certificado de manipulación de alimentos y no se permite vender bebidas alcohólicas. Además, la Junta aprobó un cobro de $20.000 por puesto para la decoración, y hay parqueadero gratuito para expositores en la cancha del barrio.',
+    primeraOracion: 'La Feria Comunitaria del Barrio El Mirador será el sábado 13 de marzo de 2027 en el parque principal, de 9:00 a. m. a 5:00 p. m.',
+    miniReto: { correcta: '3', explicacion: 'Son 3 datos: la fecha, el lugar y el horario. Cada dato se revisa por separado, aunque estén en la misma oración.' },
+
+    // Clave del laboratorio 1. fuente: id del documento o 'ninguno'.
+    afirmaciones: [
+      { t: 'La feria es el sábado 13 de marzo de 2027.', estado: 'confirmada', fuente: 'Av2', apartado: 'Apartado 1',
+        clave: 'A v2, apartado 1.' },
+      { t: 'La feria es en el parque principal.', estado: 'contradicha', fuente: 'Av2', apartado: 'Apartado 2',
+        clave: 'A v2, apartado 2: salón comunal. La A v1 decía parque principal, pero la A v2 declara que la reemplaza.' },
+      { t: 'El horario es de 9:00 a. m. a 5:00 p. m.', estado: 'contradicha', fuente: 'Av2', apartado: 'Apartado 2',
+        clave: 'A v2, apartado 2: de 10:00 a. m. a 4:00 p. m.' },
+      { t: 'Hay 30 puestos disponibles.', estado: 'contradicha', fuente: 'Av2', apartado: 'Apartado 3',
+        clave: 'A v2, apartado 3: 20 puestos.' },
+      { t: 'La inscripción cuesta $15.000.', estado: 'contradicha', fuente: 'Av2', apartado: 'Apartado 4',
+        clave: 'A v2, apartado 4: la inscripción es gratuita. El cobro de $15.000 viene del reglamento 2026 (D, artículo 1), que solo rigió para la feria 2026.' },
+      { t: 'La inscripción se puede hacer hasta el 26 de febrero de 2027.', estado: 'confirmada', fuente: 'Av2', apartado: 'Apartado 4',
+        clave: 'A v2, apartado 4.' },
+      { t: 'La inscripción se hace en el formulario web de la Junta.', estado: 'noconf', fuente: 'ninguno', apartado: '',
+        clave: 'Ningún documento dice cómo se hace la inscripción; la A v2 solo dice "con la coordinación de la feria". Es un dato sin sustento que suena verosímil: una posible alucinación.',
+        pregunta: '¿Cómo se hace la inscripción?' },
+      { t: 'Todos los expositores deben presentar certificado de manipulación de alimentos.', estado: 'contradicha', fuente: 'C', apartado: 'Artículo 2',
+        clave: 'C, artículo 2: solo los puestos de comida deben presentarlo. La afirmación aplica la regla fuera de su alcance.' },
+      { t: 'No se permite vender bebidas alcohólicas.', estado: 'confirmada', fuente: 'C', apartado: 'Artículo 3',
+        clave: 'C, artículo 3.' },
+      { t: 'La Junta aprobó un cobro de $20.000 por puesto.', estado: 'contradicha', fuente: 'B', apartado: 'Punto 2',
+        clave: 'B, punto 2: es una propuesta pendiente de aprobación, no una decisión. Un acta registra lo discutido; no fija reglas.' },
+      { t: 'Hay parqueadero gratuito para expositores en la cancha del barrio.', estado: 'noconf', fuente: 'ninguno', apartado: '',
+        clave: 'Ningún documento menciona parqueadero. No significa que no haya: significa que no se sabe.',
+        pregunta: '¿Habrá parqueadero para expositores?' }
+    ],
+
+    // Temas del laboratorio 2. af: número de afirmación cuya clave se reutiliza.
+    temas: [
+      { k: 'fecha', n: 'Fecha', af: 1, dato: 'sábado 13 de marzo de 2027' },
+      { k: 'lugar', n: 'Lugar', af: 2 },
+      { k: 'horario', n: 'Horario', af: 3 },
+      { k: 'cupo', n: 'Cupo', af: 4 },
+      { k: 'costo', n: 'Costo de inscripción', af: 5 },
+      { k: 'plazo', n: 'Plazo de inscripción', af: 6, dato: 'hasta el 26 de febrero de 2027, con la coordinación de la feria' },
+      { k: 'certificado', n: 'Certificado de manipulación de alimentos', af: 8 },
+      { k: 'mesa', n: 'Mesa', ref: 'C, artículo 1: cada expositor trae su propia mesa.' },
+      { k: 'bebidas', n: 'Bebidas alcohólicas', af: 9, dato: 'se prohíbe la venta de bebidas alcohólicas' },
+      { k: 'parqueadero', n: 'Parqueadero', af: 11 }
+    ]
+  };
+
+  /* ---------- Configuración ---------- */
+  var CLAVE = 'laboratorio-ia-sesion-3';
+  var ESTADOS = {
+    confirmada: { n: 'Confirmada', d: 'Un documento vigente la respalda.' },
+    contradicha: { n: 'Contradicha', d: 'Un documento vigente dice otra cosa.' },
+    noconf: { n: 'No confirmada', d: 'Ningún documento la respalda ni la contradice.' },
+    nomenciono: { n: 'No lo mencionó', d: 'La respuesta no habla de este tema.' }
+  };
+  var SVG = {
+    confirmada: '<path d="M5 10.4l3.2 3.2L15 6.8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    contradicha: '<path d="M6.2 6.2l7.6 7.6M13.8 6.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>',
+    noconf: '<path d="M7.4 7.5a2.7 2.7 0 1 1 3.8 2.5c-.8.4-1.2.9-1.2 1.8v.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="15.2" r="1.3" fill="currentColor"/>',
+    nomenciono: '<path d="M6 10h8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
+  };
+  var RUTAS = {
+    'laboratorio-1': {
+      e: 'l1', titulo: 'Laboratorio 1 · Individual · 30 min',
+      pasos: [{ n: 'La respuesta', t: '5 min' }, { n: 'Verifica', t: '20 min' }, { n: 'La clave', t: '5 min' }]
+    },
+    'laboratorio-2': {
+      e: 'l2', titulo: 'Laboratorio 2 · En parejas · 40 min',
+      pasos: [{ n: 'Pregunta', t: '8 min' }, { n: 'Dato por dato', t: '15 min' }, { n: 'Coincidir', t: '5 min' },
+              { n: 'Corregida', t: '10 min' }, { n: 'Compartir', t: '2 min' }]
+    }
+  };
+  var DOCS = {};
+  DATOS.expediente.documentos.forEach(function (d) { DOCS[d.id] = d; });
+  var N = DATOS.afirmaciones.length;
+
+  /* ---------- Estado y guardado ---------- */
+  function temaVacio() { return { nombre: '', da: '', db: '', ea: '', eb: '', fuente: '', correcto: '', pregunta: '' }; }
+  function inicial() {
+    var temas = {};
+    DATOS.temas.forEach(function (t) { temas[t.k] = temaVacio(); });
+    return {
+      filtro: 'todos', panel: false,
+      l1: {
+        paso: 1, reto: '', clave: false,
+        af: DATOS.afirmaciones.map(function () {
+          return { estado: '', fuente: '', apartado: '', vigente: '', alcance: '', aluc: false };
+        })
+      },
+      l2: { paso: 1, solo: false, a: '', b: '', ha: '', hb: '', temas: temas, extras: [], corregida: '', q1: '', q2: '' }
+    };
+  }
+  function mezclar(base, g) {
+    if (!g || typeof g !== 'object') return base;
+    Object.keys(base).forEach(function (k) {
+      if (Array.isArray(base[k])) {
+        if (!Array.isArray(g[k])) return;
+        if (k === 'extras') {
+          base[k] = g[k].filter(function (x) { return x && typeof x === 'object'; })
+            .map(function (x) { return mezclar(temaVacio(), x); });
+        } else {
+          base[k].forEach(function (b, i) { mezclar(b, g[k][i]); });
+        }
+      } else if (base[k] && typeof base[k] === 'object') {
+        mezclar(base[k], g[k]);
+      } else if (typeof g[k] === typeof base[k]) {
+        base[k] = g[k];
+      }
+    });
+    return base;
+  }
+  function cargar() {
+    var base = inicial();
+    try {
+      var crudo = window.localStorage.getItem(CLAVE);
+      if (crudo) mezclar(base, JSON.parse(crudo));
+    } catch (e) { /* sin almacenamiento: la página funciona igual */ }
+    return base;
+  }
+  function guardar() {
+    try { window.localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) { /* nada */ }
+  }
+  var estado = cargar();
+
+  function leer(ruta) {
+    return ruta.split('.').reduce(function (o, k) { return o == null ? undefined : o[k]; }, estado);
+  }
+  function escribir(ruta, v) {
+    var ks = ruta.split('.');
+    var o = estado;
+    for (var i = 0; i < ks.length - 1; i++) { o = o[ks[i]]; if (o == null) return; }
+    o[ks[ks.length - 1]] = v;
+  }
+
+  /* ---------- Utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function crear(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) e.className = clase;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  function todos(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
+  function o(v) { return v && String(v).trim() ? String(v).trim() : '(sin responder)'; }
+  function solo() { return estado.l2.solo; }
+  function t(pareja, uno) { return solo() ? uno : pareja; }
+  function minus(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+
+  function icono(est) {
+    var s = crear('span', 'ico est-' + est);
+    s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<svg viewBox="0 0 20 20" focusable="false">' + SVG[est] + '</svg>';
+    return s;
+  }
+  function chipEstado(est) {
+    var c = crear('span', 'chip-estado est-' + est);
+    c.appendChild(icono(est));
+    c.appendChild(document.createTextNode(ESTADOS[est].n));
+    return c;
+  }
+  function nombreFuente(id, apartado) {
+    if (!id) return '(sin fuente)';
+    if (id === 'ninguno') return 'Ningún documento lo menciona';
+    return DOCS[id].codigo + (apartado ? ', ' + minus(apartado) : '');
+  }
+  function opcionesEstado(nombre, lista) {
+    var ops = crear('div', 'opciones estados');
+    lista.forEach(function (est) {
+      var lab = crear('label');
+      var inp = crear('input');
+      inp.type = 'radio'; inp.name = nombre; inp.value = est;
+      var sp = crear('span', 'est-' + est);
+      sp.appendChild(icono(est));
+      sp.appendChild(document.createTextNode(ESTADOS[est].n));
+      lab.appendChild(inp); lab.appendChild(sp);
+      ops.appendChild(lab);
+    });
+    return ops;
+  }
+  function opcionesSiNo(nombre) {
+    var ops = crear('div', 'opciones');
+    ['Sí', 'No'].forEach(function (v) {
+      var lab = crear('label');
+      var inp = crear('input');
+      inp.type = 'radio'; inp.name = nombre; inp.value = v;
+      lab.appendChild(inp); lab.appendChild(crear('span', '', v));
+      ops.appendChild(lab);
+    });
+    return ops;
+  }
+  function metaDoc(d) {
+    var dl = crear('dl', 'meta-lista');
+    [[d.fechaEtiqueta, d.fecha], ['Vigencia', d.vigencia], ['Alcance', d.alcance]].forEach(function (par) {
+      dl.appendChild(crear('dt', '', par[0]));
+      dl.appendChild(crear('dd', '', par[1].charAt(0).toUpperCase() + par[1].slice(1) + '.'));
+    });
+    return dl;
+  }
+
+  function seleccionar(elem) {
+    try {
+      var det = elem.closest('details');
+      if (det) det.open = true;
+      var r = document.createRange();
+      r.selectNodeContents(elem);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (e) { /* nada */ }
+  }
+  function copiar(texto, fuente, aviso) {
+    function listo() { aviso.textContent = 'Copiado. Ahora pégalo donde lo necesites.'; }
+    function aMano() {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo copiar automáticamente. El texto quedó seleccionado: mantenlo presionado y elige "Copiar" (en computador, Ctrl + C).';
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        var espera = setTimeout(aMano, 1500);
+        navigator.clipboard.writeText(texto).then(
+          function () { clearTimeout(espera); listo(); },
+          function () { clearTimeout(espera); aMano(); }
+        );
+      } else { aMano(); }
+    } catch (e) { aMano(); }
+  }
+  function descargar(texto, nombre, fuente, aviso) {
+    try {
+      var blob = new Blob(['﻿' + texto.replace(/\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = crear('a');
+      a.href = url;
+      a.download = nombre;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      aviso.textContent = 'Se descargó el archivo ' + nombre + '.';
+    } catch (e) {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo descargar en este dispositivo. El texto quedó seleccionado para que lo copies.';
+    }
+  }
+  function fecha() {
+    try { return new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return ''; }
+  }
+
+  /* ---------- Expediente ---------- */
+  function textoExpediente() {
+    var ex = DATOS.expediente;
+    var bloques = [ex.encabezado];
+    ex.documentos.forEach(function (d) {
+      var l = [d.codigo + '. ' + d.titulo];
+      l.push('- ' + d.fechaEtiqueta + ': ' + d.fecha + '. Vigencia: ' + d.vigencia + '. Alcance: ' + d.alcance + '.');
+      d.partes.forEach(function (p) { l.push('- ' + p.e + (p.sep || '. ') + p.t); });
+      bloques.push(l.join('\n'));
+    });
+    return bloques.join('\n\n');
+  }
+  function textoCopia() { return textoExpediente() + '\n\n' + DATOS.pregunta; }
+
+  $('exp-encabezado').textContent = DATOS.expediente.encabezado;
+  (function construirExpediente() {
+    var filtro = $('filtro');
+    [{ id: 'todos', n: 'Todos' }].concat(DATOS.expediente.documentos.map(function (d) {
+      return { id: d.id, n: d.codigo };
+    })).forEach(function (f) {
+      var li = crear('li');
+      var b = crear('button', '', f.n);
+      b.type = 'button';
+      b.dataset.filtro = f.id;
+      if (f.id !== 'todos') b.setAttribute('aria-label', 'Ver solo ' + f.n + ': ' + DOCS[f.id].titulo);
+      li.appendChild(b);
+      filtro.appendChild(li);
+    });
+    DATOS.expediente.documentos.forEach(function (d) {
+      var art = crear('article', 'doc');
+      art.dataset.doc = d.id;
+      art.setAttribute('aria-labelledby', 'doc-t-' + d.id);
+      var cab = crear('div', 'doc-cab');
+      cab.appendChild(crear('span', 'codigo', d.codigo));
+      var h = crear('h3', '', d.titulo);
+      h.id = 'doc-t-' + d.id;
+      cab.appendChild(h);
+      art.appendChild(cab);
+      art.appendChild(metaDoc(d));
+      var ol = crear('ol');
+      d.partes.forEach(function (p) {
+        var li = crear('li');
+        li.appendChild(crear('b', '', p.e + (p.sep ? ':' : '.')));
+        li.appendChild(document.createTextNode(' ' + p.t));
+        ol.appendChild(li);
+      });
+      art.appendChild(ol);
+      $('exp-docs').appendChild(art);
+    });
+  })();
+  $('filtro').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (!b) return;
+    estado.filtro = b.dataset.filtro;
+    guardar();
+    pintarExpediente();
+  });
+  $('exp-toggle').addEventListener('click', function () {
+    estado.panel = !estado.panel;
+    guardar();
+    pintarExpediente();
+  });
+  function pintarExpediente() {
+    if (estado.filtro !== 'todos' && !DOCS[estado.filtro]) estado.filtro = 'todos';
+    todos('#filtro button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.filtro === estado.filtro ? 'true' : 'false'); });
+    todos('#exp-docs .doc').forEach(function (d) { d.hidden = !(estado.filtro === 'todos' || d.dataset.doc === estado.filtro); });
+    $('expediente').classList.toggle('abierto', estado.panel);
+    $('exp-toggle').setAttribute('aria-expanded', estado.panel ? 'true' : 'false');
+    $('exp-toggle').textContent = estado.panel ? 'Ocultar expediente' : 'Ver expediente';
+  }
+
+  /* ---------- Laboratorio 1 ---------- */
+  (function () {
+    var r = DATOS.respuesta;
+    var i = r.indexOf(DATOS.primeraOracion);
+    var p = $('respuesta-ia');
+    if (i === -1) { p.textContent = r; return; }
+    p.appendChild(document.createTextNode(r.slice(0, i)));
+    p.appendChild(crear('mark', '', DATOS.primeraOracion));
+    p.appendChild(document.createTextNode(r.slice(i + DATOS.primeraOracion.length)));
+  })();
+
+  ['confirmada', 'contradicha', 'noconf'].forEach(function (est) {
+    var li = crear('li');
+    li.appendChild(icono(est));
+    var d = crear('span');
+    d.appendChild(crear('b', '', ESTADOS[est].n));
+    d.appendChild(document.createTextNode(ESTADOS[est].d));
+    li.appendChild(d);
+    $('leyenda-estados').appendChild(li);
+  });
+
+  DATOS.afirmaciones.forEach(function (af, i) {
+    var base = 'l1.af.' + i + '.';
+    var tj = crear('div', 'tarjeta afirmacion');
+    tj.setAttribute('role', 'group');
+    tj.setAttribute('aria-labelledby', 'af-t-' + i);
+    tj.appendChild(crear('p', 'paso-cab meta', 'Afirmación ' + (i + 1) + ' de ' + N)).style.margin = '0 0 .2rem';
+    var h = crear('h3', 'que', af.t);
+    h.id = 'af-t-' + i;
+    tj.appendChild(h);
+
+    var fs = crear('fieldset');
+    fs.appendChild(crear('legend', '', 'Estado'));
+    fs.appendChild(opcionesEstado(base + 'estado', ['confirmada', 'contradicha', 'noconf']));
+    tj.appendChild(fs);
+
+    var cf = crear('div', 'campo');
+    var lf = crear('label', '', 'Fuente');
+    lf.htmlFor = 'l1-f-' + i;
+    var sf = crear('select');
+    sf.id = 'l1-f-' + i;
+    sf.dataset.campo = base + 'fuente';
+    sf.appendChild(new Option('Elige un documento', ''));
+    DATOS.expediente.documentos.forEach(function (d) { sf.appendChild(new Option(d.codigo + ' · ' + d.titulo, d.id)); });
+    sf.appendChild(new Option('Ningún documento lo menciona', 'ninguno'));
+    cf.appendChild(lf); cf.appendChild(sf);
+    tj.appendChild(cf);
+
+    var ca = crear('div', 'campo');
+    ca.id = 'l1-apc-' + i;
+    var la = crear('label', '', 'Apartado');
+    la.htmlFor = 'l1-ap-' + i;
+    var sa = crear('select');
+    sa.id = 'l1-ap-' + i;
+    sa.dataset.campo = base + 'apartado';
+    ca.appendChild(la); ca.appendChild(sa);
+    tj.appendChild(ca);
+
+    var fd = crear('div', 'ficha-doc');
+    fd.id = 'l1-md-' + i;
+    var cont = crear('div');
+    cont.id = 'l1-mdl-' + i;
+    fd.appendChild(cont);
+    var f1 = crear('fieldset');
+    f1.appendChild(crear('legend', '', '¿Este documento está vigente para la feria 2027?'));
+    f1.appendChild(opcionesSiNo(base + 'vigente'));
+    var f2 = crear('fieldset');
+    f2.appendChild(crear('legend', '', '¿Su alcance cubre lo que dice la afirmación?'));
+    f2.appendChild(opcionesSiNo(base + 'alcance'));
+    fd.appendChild(f1); fd.appendChild(f2);
+    tj.appendChild(fd);
+
+    var cas = crear('label', 'casilla');
+    var ch = crear('input');
+    ch.type = 'checkbox';
+    ch.dataset.campo = base + 'aluc';
+    cas.appendChild(ch);
+    cas.appendChild(crear('span', '', 'Creo que esto es una alucinación'));
+    tj.appendChild(cas);
+
+    $('afirmaciones').appendChild(tj);
+  });
+
+  function revisadas() {
+    return estado.l1.af.filter(function (a) { return a.estado && a.fuente; }).length;
+  }
+  function evaluar(i) {
+    var a = estado.l1.af[i], k = DATOS.afirmaciones[i];
+    var doc = a.fuente === k.fuente;
+    return { estado: a.estado === k.estado, doc: doc, fuente: doc && (k.fuente === 'ninguno' || a.apartado === k.apartado) };
+  }
+  function pintarL1() {
+    // Mini reto
+    var r = estado.l1.reto, caja = $('reto-respuesta');
+    caja.hidden = !r;
+    if (r) {
+      var bien = r === DATOS.miniReto.correcta;
+      caja.className = 'reto-respuesta ' + (bien ? 'bien' : 'mal');
+      caja.textContent = '';
+      caja.appendChild(crear('p', '', (bien ? 'Correcto. ' : 'No exactamente. ') + DATOS.miniReto.explicacion));
+    }
+
+    // Tarjetas
+    DATOS.afirmaciones.forEach(function (k, i) {
+      var a = estado.l1.af[i];
+      var sa = $('l1-ap-' + i);
+      var doc = DOCS[a.fuente];
+      if (sa.dataset.doc !== a.fuente) {
+        sa.dataset.doc = a.fuente;
+        sa.textContent = '';
+        if (doc) {
+          sa.appendChild(new Option('Elige el apartado', ''));
+          doc.partes.forEach(function (p) { sa.appendChild(new Option(p.e, p.e)); });
+        }
+        var md = $('l1-mdl-' + i);
+        md.textContent = '';
+        if (doc) {
+          var cab = crear('div', 'doc-cab');
+          cab.appendChild(crear('span', 'codigo', doc.codigo));
+          cab.appendChild(crear('strong', '', doc.titulo));
+          md.appendChild(cab);
+          md.appendChild(metaDoc(doc));
+        }
+      }
+      if (!doc || !doc.partes.some(function (p) { return p.e === a.apartado; })) a.apartado = '';
+      sa.value = a.apartado;
+      $('l1-apc-' + i).hidden = !doc;
+      $('l1-md-' + i).hidden = !doc;
+    });
+
+    var n = revisadas();
+    $('progreso-txt').textContent = n + ' de ' + N + ' afirmaciones revisadas';
+    $('progreso-barra').setAttribute('aria-valuenow', String(n));
+    $('progreso-lleno').style.width = (100 * n / N) + '%';
+
+    // Clave
+    $('antes-clave').textContent = estado.l1.clave ? '' :
+      (n < N ? 'Llevas ' + n + ' de ' + N + ' afirmaciones revisadas. Puedes ver la clave igual.' : 'Revisaste las ' + N + ' afirmaciones.');
+    $('fila-ver-clave').hidden = estado.l1.clave;
+    $('clave-zona').hidden = !estado.l1.clave;
+    if (estado.l1.clave) {
+      var ok = 0, okF = 0;
+      var lista = $('clave-lista');
+      lista.textContent = '';
+      DATOS.afirmaciones.forEach(function (k, i) {
+        var a = estado.l1.af[i], ev = evaluar(i);
+        if (ev.estado) ok++;
+        if (ev.fuente) okF++;
+        var li = crear('li');
+        li.appendChild(crear('p', 'que', (i + 1) + '. ' + k.t));
+        var pc = crear('p');
+        pc.appendChild(chipEstado(k.estado));
+        pc.appendChild(document.createTextNode(' ' + k.clave));
+        li.appendChild(pc);
+        if (k.pregunta) {
+          var pq = crear('p');
+          pq.appendChild(crear('strong', '', 'Pregunta a la coordinación: '));
+          pq.appendChild(document.createTextNode(k.pregunta));
+          li.appendChild(pq);
+        }
+        var pe = crear('p');
+        pe.appendChild(document.createTextNode('Tu estado: ' + (a.estado ? ESTADOS[a.estado].n : 'sin marcar') + '. '));
+        pe.appendChild(crear('span', 'marca ' + (ev.estado ? 'si' : 'no'), ev.estado ? 'Acertaste.' : 'No coincide.'));
+        li.appendChild(pe);
+        var pf = crear('p');
+        pf.appendChild(document.createTextNode('Tu fuente: ' + nombreFuente(a.fuente, a.apartado) + '. '));
+        pf.appendChild(crear('span', 'marca ' + (ev.fuente ? 'si' : 'no'),
+          ev.fuente ? 'Coincide.' : (ev.doc ? 'El documento coincide; la clave usa ' + minus(k.apartado) + '.' : 'La clave usa: ' + nombreFuente(k.fuente, k.apartado) + '.')));
+        li.appendChild(pf);
+        if (a.aluc) li.appendChild(crear('p', 'ayuda', 'La marcaste como posible alucinación.'));
+        lista.appendChild(li);
+      });
+      $('puntaje-l1').textContent = 'Acertaste ' + ok + ' de ' + N + ' estados';
+      $('puntaje-fuentes').textContent = 'Y ' + okF + ' de ' + N + ' fuentes con su apartado.';
+      $('resumen-l1').textContent = resumenL1();
+    }
+  }
+  function resumenL1() {
+    var l = ['SESIÓN 3 · LABORATORIO 1: VERIFICAR UNA RESPUESTA PREPARADA'];
+    if (fecha()) l.push(fecha());
+    l.push('', 'Mini reto: ¿cuántos datos hay en la primera oración? Respondí: ' + o(estado.l1.reto) + '. Clave: ' + DATOS.miniReto.correcta + ' (fecha, lugar y horario).');
+    var ok = 0;
+    l.push('', 'MIS VERIFICACIONES');
+    DATOS.afirmaciones.forEach(function (k, i) {
+      var a = estado.l1.af[i], ev = evaluar(i);
+      if (ev.estado) ok++;
+      l.push('', (i + 1) + '. ' + k.t);
+      l.push('   Mi estado: ' + (a.estado ? ESTADOS[a.estado].n : '(sin marcar)') + ' · Fuente: ' + nombreFuente(a.fuente, a.apartado));
+      if (DOCS[a.fuente]) l.push('   ¿Vigente para 2027?: ' + o(a.vigente) + ' · ¿El alcance cubre la afirmación?: ' + o(a.alcance));
+      if (a.aluc) l.push('   La marqué como posible alucinación.');
+      l.push('   Clave: ' + ESTADOS[k.estado].n + '. ' + k.clave);
+      if (k.pregunta) l.push('   Pregunta a la coordinación: ' + k.pregunta);
+    });
+    l.push('', 'Acerté ' + ok + ' de ' + N + ' estados.');
+    l.push('La respuesta sonaba segura de principio a fin y solo 3 de sus 11 afirmaciones están confirmadas.');
+    return l.join('\n');
+  }
+  $('btn-ver-clave').addEventListener('click', function () {
+    estado.l1.clave = true;
+    guardar();
+    refrescar();
+    $('puntaje-l1').focus({ preventScroll: true });
+    $('clave-zona').scrollIntoView({ block: 'start' });
+  });
+  $('btn-copiar-l1').addEventListener('click', function () { copiar(resumenL1(), $('resumen-l1'), $('estado-l1')); });
+  $('btn-descargar-l1').addEventListener('click', function () {
+    descargar(resumenL1(), 'sesion-3-laboratorio-1.txt', $('resumen-l1'), $('estado-l1'));
+  });
+
+  /* ---------- Laboratorio 2 ---------- */
+  $('texto-exp').textContent = textoCopia();
+  $('btn-copiar-exp').addEventListener('click', function () { copiar(textoCopia(), $('texto-exp'), $('estado-exp')); });
+
+  function refTema(tm) {
+    if (tm.ref) return tm.ref;
+    var k = DATOS.afirmaciones[tm.af - 1];
+    var txt = k.clave;
+    if (tm.dato) txt = txt.replace(/\.$/, ': ' + tm.dato + '.');
+    if (k.pregunta) txt += ' Pregunta a la coordinación: ' + k.pregunta;
+    return txt;
+  }
+  function listaTemas() {
+    var l = DATOS.temas.map(function (tm) {
+      return { id: tm.k, nombre: tm.n, ruta: 'l2.temas.' + tm.k, ref: refTema(tm), pregunta: tm.af ? DATOS.afirmaciones[tm.af - 1].pregunta : '' };
+    });
+    estado.l2.extras.forEach(function (x, i) {
+      l.push({ id: 'extra' + i, nombre: x.nombre.trim() || 'Otra afirmación ' + (i + 1), ruta: 'l2.extras.' + i, extra: i });
+    });
+    return l;
+  }
+
+  function construirTema(tm) {
+    var tj = crear('div', 'tarjeta tema');
+    tj.setAttribute('role', 'group');
+    tj.setAttribute('aria-labelledby', 'tm-t-' + tm.id);
+    var cab = crear('div', 'tema-cab');
+    var h = crear('h3', '', tm.extra != null ? 'Otra afirmación ' + (tm.extra + 1) : tm.nombre);
+    h.id = 'tm-t-' + tm.id;
+    cab.appendChild(h);
+    if (tm.extra != null) {
+      var q = crear('button', 'boton claro chico', 'Quitar');
+      q.type = 'button';
+      q.dataset.quitar = String(tm.extra);
+      q.setAttribute('aria-label', 'Quitar la otra afirmación ' + (tm.extra + 1));
+      cab.appendChild(q);
+    } else {
+      var b = crear('button', 'boton claro chico', 'Ver qué dice el expediente');
+      b.type = 'button';
+      b.setAttribute('aria-expanded', 'false');
+      b.setAttribute('aria-controls', 'ref-' + tm.id);
+      b.dataset.ref = tm.id;
+      cab.appendChild(b);
+    }
+    tj.appendChild(cab);
+    if (tm.extra != null) {
+      var cn = crear('div', 'campo');
+      var ln = crear('label', '', 'Tema o afirmación que encontraron');
+      ln.htmlFor = 'tm-n-' + tm.id;
+      var inn = crear('input');
+      inn.type = 'text'; inn.id = 'tm-n-' + tm.id; inn.dataset.campo = tm.ruta + '.nombre';
+      inn.placeholder = 'Ej.: hay que llevar extensión eléctrica';
+      cn.appendChild(ln); cn.appendChild(inn);
+      tj.appendChild(cn);
+    } else {
+      var ref = crear('div', 'ref');
+      ref.id = 'ref-' + tm.id;
+      ref.hidden = true;
+      ref.appendChild(crear('strong', '', 'Según el expediente: '));
+      ref.appendChild(document.createTextNode(tm.ref));
+      tj.appendChild(ref);
+    }
+    ['a', 'b'].forEach(function (lado) {
+      var L = lado.toUpperCase();
+      var bloque = crear('div', 'lado-tema');
+      var c = crear('div', 'campo');
+      var lb = crear('label', '', 'Respuesta ' + L + ': qué dijo');
+      lb.htmlFor = 'tm-' + lado + '-' + tm.id;
+      var inp = crear('input');
+      inp.type = 'text'; inp.id = 'tm-' + lado + '-' + tm.id; inp.dataset.campo = tm.ruta + '.d' + lado;
+      c.appendChild(lb); c.appendChild(inp);
+      bloque.appendChild(c);
+      var fs = crear('fieldset');
+      fs.appendChild(crear('legend', '', 'Estado en ' + L));
+      fs.appendChild(opcionesEstado(tm.ruta + '.e' + lado, ['confirmada', 'contradicha', 'noconf', 'nomenciono']));
+      bloque.appendChild(fs);
+      tj.appendChild(bloque);
+    });
+    var cf = crear('div', 'campo');
+    var lf = crear('label', '', 'Fuente y apartado');
+    lf.htmlFor = 'tm-f-' + tm.id;
+    var inf = crear('input');
+    inf.type = 'text'; inf.id = 'tm-f-' + tm.id; inf.dataset.campo = tm.ruta + '.fuente';
+    inf.placeholder = 'Ej.: A v2, apartado 2';
+    cf.appendChild(lf); cf.appendChild(inf);
+    tj.appendChild(cf);
+    return tj;
+  }
+  listaTemas().forEach(function (tm) { if (tm.extra == null) $('temas').appendChild(construirTema(tm)); });
+  function construirExtras() {
+    var z = $('extras');
+    z.textContent = '';
+    listaTemas().forEach(function (tm) { if (tm.extra != null) z.appendChild(construirTema(tm)); });
+  }
+  construirExtras();
+
+  $('temas').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-ref]');
+    if (!b) return;
+    var caja = $('ref-' + b.dataset.ref);
+    var abrir = caja.hidden;
+    caja.hidden = !abrir;
+    b.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    b.textContent = abrir ? 'Ocultar la referencia' : 'Ver qué dice el expediente';
+  });
+  $('btn-agregar').addEventListener('click', function () {
+    estado.l2.extras.push(temaVacio());
+    guardar();
+    construirExtras();
+    pintarCampos();
+    refrescar();
+    var nuevo = $('tm-n-extra' + (estado.l2.extras.length - 1));
+    if (nuevo) nuevo.focus();
+  });
+  $('extras').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-quitar]');
+    if (!b) return;
+    estado.l2.extras.splice(Number(b.dataset.quitar), 1);
+    guardar();
+    construirExtras();
+    pintarCampos();
+    refrescar();
+    $('btn-agregar').focus();
+  });
+
+  // Comparación de lo que dijo cada respuesta: sin tildes, mayúsculas, espacios ni signos.
+  function normal(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  }
+  function mismo(x, y) {
+    var a = normal(x), b = normal(y);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    var corto = a.length < b.length ? a : b, largo = corto === a ? b : a;
+    return corto.length >= 4 && largo.indexOf(corto) !== -1;
+  }
+  function malos(e) { return e === 'contradicha' || e === 'noconf'; }
+  function coincidencias() {
+    return listaTemas().filter(function (tm) {
+      var d = leer(tm.ruta);
+      return mismo(d.da, d.db) && (malos(d.ea) || malos(d.eb));
+    });
+  }
+  function pintarCoincidencias() {
+    var z = $('coincidencias');
+    z.textContent = '';
+    var lista = coincidencias();
+    if (lista.length) {
+      var nota = crear('div', 'nota');
+      nota.appendChild(crear('p', 'cierre', t(
+        'Sus dos IA coincidieron y aun así el dato no está respaldado. Que varias fuentes repitan algo no lo confirma si no tiene un origen que lo sostenga.',
+        'Tus dos intentos coincidieron y aun así el dato no está respaldado. Que varias fuentes repitan algo no lo confirma si no tiene un origen que lo sostenga.')));
+      z.appendChild(nota);
+      lista.forEach(function (tm) {
+        var d = leer(tm.ruta);
+        var tj = crear('div', 'tarjeta coincide');
+        tj.appendChild(crear('h3', '', tm.nombre));
+        ['a', 'b'].forEach(function (lado) {
+          var p = crear('p');
+          p.appendChild(crear('strong', '', 'Respuesta ' + lado.toUpperCase() + ': '));
+          p.appendChild(document.createTextNode('"' + d['d' + lado].trim() + '" '));
+          var e = d['e' + lado];
+          if (e) p.appendChild(chipEstado(e)); else p.appendChild(crear('span', 'ayuda', '(sin estado)'));
+          tj.appendChild(p);
+        });
+        if (d.fuente.trim()) tj.appendChild(crear('p', 'ayuda', 'Fuente y apartado: ' + d.fuente.trim()));
+        z.appendChild(tj);
+      });
+    } else {
+      var tj2 = crear('div', 'tarjeta');
+      tj2.appendChild(crear('h3', '', 'Esta vez no hubo una coincidencia de ese tipo'));
+      tj2.appendChild(crear('p', '', t(
+        'No encontramos temas donde sus dos respuestas dijeran lo mismo y el dato quedara contradicho o sin confirmar. Igual pasa a menudo, y el expediente trae un ejemplo:',
+        'No encontramos temas donde tus dos intentos dijeran lo mismo y el dato quedara contradicho o sin confirmar. Igual pasa a menudo, y el expediente trae un ejemplo:')));
+      tj2.appendChild(crear('p', '', 'El volante (E) y el mensaje de WhatsApp (F) dicen que la feria es en el parque principal. Parecen dos fuentes, pero el volante dice que tomó la información de la Circular 01, y el mensaje dice que la tomó del volante. Los dos repiten el dato de la A v1, que la A v2 reemplazó: la feria es en el salón comunal.'));
+      tj2.appendChild(crear('p', 'cierre', 'Que varias fuentes repitan algo no lo confirma si no tiene un origen que lo sostenga.'));
+      z.appendChild(tj2);
+    }
+  }
+
+  function categoria(d) {
+    var es = [d.ea, d.eb];
+    if (es.indexOf('confirmada') !== -1) return 'mantener';
+    if (es.indexOf('contradicha') !== -1) return 'corregir';
+    if (es.indexOf('noconf') !== -1) return 'preguntar';
+    return '';
+  }
+  function dijeron(d, cuales) {
+    var partes = [];
+    ['a', 'b'].forEach(function (lado) {
+      if (cuales.indexOf(d['e' + lado]) !== -1 && d['d' + lado].trim()) partes.push(lado.toUpperCase() + ': "' + d['d' + lado].trim() + '"');
+    });
+    return partes.join(' · ');
+  }
+  var GRUPOS = [
+    { k: 'mantener', n: 'Mantener', est: 'confirmada', d: 'Lo confirmado.', vacio: 'Ningún tema quedó confirmado.', de: ['confirmada'] },
+    { k: 'corregir', n: 'Corregir', est: 'contradicha', d: 'Lo contradicho. Escriban el dato correcto y su fuente.', vacio: 'Ningún tema quedó contradicho.', de: ['contradicha'] },
+    { k: 'preguntar', n: 'Preguntar a la coordinación', est: 'noconf', d: 'Lo no confirmado. Redacten la pregunta.', vacio: 'Ningún tema quedó sin confirmar.', de: ['noconf'] }
+  ];
+  var firmaListas = null;
+  function pintarListas() {
+    var temas = listaTemas().map(function (tm) { var d = leer(tm.ruta); return { tm: tm, d: d, cat: categoria(d) }; });
+    var firma = (solo() ? 's' : 'p') + JSON.stringify(temas.map(function (x) { return [x.tm.nombre, x.cat, x.d.da, x.d.db, x.d.ea, x.d.eb, x.d.fuente]; }));
+    if (firma === firmaListas) return;
+    firmaListas = firma;
+    var z = $('listas');
+    z.textContent = '';
+    GRUPOS.forEach(function (g) {
+      var tj = crear('div', 'tarjeta');
+      var cab = crear('div', 'grupo-cab');
+      cab.appendChild(icono(g.est));
+      cab.appendChild(crear('h3', '', g.n));
+      tj.appendChild(cab);
+      tj.appendChild(crear('p', 'ayuda', g.k === 'mantener' ? g.d : t(g.d, g.d.replace('Escriban', 'Escribe').replace('Redacten', 'Redacta'))));
+      var items = temas.filter(function (x) { return x.cat === g.k; });
+      if (!items.length) {
+        tj.appendChild(crear('p', 'vacio', g.vacio));
+      } else {
+        var ul = crear('ul', 'lista-corr');
+        items.forEach(function (x) {
+          var li = crear('li');
+          li.appendChild(crear('strong', '', x.tm.nombre));
+          var dj = dijeron(x.d, g.de);
+          if (dj) li.appendChild(crear('p', 'dijo', 'Dijeron ' + dj));
+          if (g.k === 'mantener' && x.d.fuente.trim()) li.appendChild(crear('p', 'dijo', 'Fuente: ' + x.d.fuente.trim()));
+          if (g.k !== 'mantener') {
+            var c = crear('div', 'campo');
+            var lb = crear('label', '', g.k === 'corregir' ? 'Dato correcto y su fuente' : 'Pregunta para la coordinación');
+            lb.htmlFor = 'ls-' + g.k + '-' + x.tm.id;
+            var inp = crear('input');
+            inp.type = 'text';
+            inp.id = 'ls-' + g.k + '-' + x.tm.id;
+            inp.dataset.campo = x.tm.ruta + (g.k === 'corregir' ? '.correcto' : '.pregunta');
+            inp.placeholder = g.k === 'corregir' ? 'Ej.: salón comunal (A v2, apartado 2)' : (x.tm.pregunta || 'Ej.: ¿...?');
+            c.appendChild(lb); c.appendChild(inp);
+            li.appendChild(c);
+          }
+          ul.appendChild(li);
+        });
+        tj.appendChild(ul);
+      }
+      z.appendChild(tj);
+    });
+    var sinDatos = temas.filter(function (x) { return !x.cat; }).length;
+    if (sinDatos === temas.length) {
+      var nota = crear('div', 'nota');
+      var p = crear('p', '', t('Todavía no hay estados marcados. Primero completen la tabla. ', 'Todavía no hay estados marcados. Primero completa la tabla. '));
+      var a = crear('a', '', 'Ir al paso 2');
+      a.href = '#laboratorio-2-paso-2';
+      p.appendChild(a);
+      nota.appendChild(p);
+      z.insertBefore(nota, z.firstChild);
+    }
+    pintarCampos();
+  }
+  function textoCorregida() {
+    var temas = listaTemas().map(function (tm) { var d = leer(tm.ruta); return { tm: tm, d: d, cat: categoria(d) }; });
+    var l = ['SESIÓN 3 · LABORATORIO 2: RESPUESTA CORREGIDA'];
+    if (fecha()) l.push(fecha());
+    l.push(solo() ? 'Trabajé solo: dos intentos con la misma IA.' : 'Trabajo en pareja.');
+    l.push('Respuesta A: ' + o(estado.l2.ha) + ' · Respuesta B: ' + o(estado.l2.hb));
+    l.push('', 'RESPUESTA CORREGIDA', o(estado.l2.corregida));
+    l.push('', 'PREGUNTAS A LA COORDINACIÓN');
+    var pregs = temas.filter(function (x) { return x.cat === 'preguntar'; });
+    if (!pregs.length) l.push('(ninguna)');
+    pregs.forEach(function (x) { l.push('- ' + (x.d.pregunta.trim() || '(' + x.tm.nombre + ': pregunta sin redactar)')); });
+    l.push('', 'LO QUE VERIFICAMOS');
+    GRUPOS.forEach(function (g) {
+      var items = temas.filter(function (x) { return x.cat === g.k; });
+      if (!items.length) return;
+      l.push(g.n.toUpperCase() + ':');
+      items.forEach(function (x) {
+        var linea = '- ' + x.tm.nombre;
+        var dj = dijeron(x.d, g.de);
+        if (dj) linea += '. Dijeron ' + dj;
+        if (g.k === 'corregir') linea += '. Dato correcto: ' + o(x.d.correcto);
+        if (g.k === 'mantener' && x.d.fuente.trim()) linea += '. Fuente: ' + x.d.fuente.trim();
+        l.push(linea);
+      });
+    });
+    return l.join('\n');
+  }
+  $('btn-copiar-corr').addEventListener('click', function () {
+    var pre = $('texto-corregida');
+    pre.textContent = textoCorregida();
+    pre.hidden = false;
+    copiar(textoCorregida(), pre, $('estado-corr'));
+  });
+  $('btn-descargar-corr').addEventListener('click', function () {
+    var pre = $('texto-corregida');
+    pre.textContent = textoCorregida();
+    descargar(textoCorregida(), 'sesion-3-respuesta-corregida.txt', pre, $('estado-corr'));
+  });
+
+  function mostrar(caja, texto, vacio) {
+    caja.textContent = texto.trim() ? texto.trim() : vacio;
+  }
+  function pintarL2() {
+    mostrar($('ver-a'), estado.l2.a, 'Todavía no hay respuesta A. Pégala en el paso 1.');
+    mostrar($('ver-b'), estado.l2.b, 'Todavía no hay respuesta B. Pégala en el paso 1.');
+    pintarCoincidencias();
+    pintarListas();
+    var pre = $('texto-corregida');
+    if (!pre.hidden) pre.textContent = textoCorregida();
+  }
+
+  /* ---------- Del estado a la página y al revés ---------- */
+  function pintarCampos() {
+    todos('[data-campo]').forEach(function (c) {
+      var v = leer(c.dataset.campo);
+      if (c.type === 'checkbox') c.checked = !!v;
+      else if (c.value !== v) c.value = v == null ? '' : v;
+    });
+    todos('input[type="radio"]').forEach(function (r) { r.checked = (r.value === leer(r.name)); });
+  }
+  function pintarModo() {
+    todos('[data-solo]').forEach(function (el) {
+      if (el.dataset.pareja === undefined) el.dataset.pareja = el.textContent;
+      var texto = solo() ? el.dataset.solo : el.dataset.pareja;
+      if (el.textContent !== texto) el.textContent = texto;
+    });
+  }
+  function refrescar() {
+    pintarModo();
+    pintarExpediente();
+    pintarL1();
+    pintarL2();
+  }
+  document.addEventListener('input', function (ev) {
+    var c = ev.target;
+    if (!c.dataset || !c.dataset.campo || c.type === 'checkbox') return;
+    escribir(c.dataset.campo, c.value);
+    guardar();
+    refrescar();
+  });
+  document.addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (c.type === 'radio') escribir(c.name, c.value);
+    else if (c.type === 'checkbox' && c.dataset.campo) escribir(c.dataset.campo, c.checked);
+    else if (c.tagName === 'SELECT' && c.dataset.campo) escribir(c.dataset.campo, c.value);
+    else return;
+    guardar();
+    refrescar();
+    if (c.dataset.campo === 'l2.solo') irA(false);
+  });
+
+  /* ---------- Navegación por hash ---------- */
+  var vistas = todos('.vista');
+  var actual = { parte: '', paso: 0 };
+  function leerHash() {
+    var h = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+    if (RUTAS[h]) {
+      var g = estado[RUTAS[h].e].paso;
+      return { parte: h, paso: g >= 1 && g <= RUTAS[h].pasos.length ? g : 1, alias: true };
+    }
+    var m = /^(laboratorio-[12])-paso-(\d)$/.exec(h);
+    if (m && Number(m[2]) >= 1 && Number(m[2]) <= RUTAS[m[1]].pasos.length) return { parte: m[1], paso: Number(m[2]) };
+    return { parte: '', paso: 0 };
+  }
+  function irA(conFoco) {
+    var r = leerHash();
+    if (r.alias) {
+      try { window.history.replaceState(null, '', '#' + r.parte + '-paso-' + r.paso); } catch (e) { /* nada */ }
+    }
+    actual = r;
+    var vista = r.parte ? r.parte + '-paso-' + r.paso : 'inicio';
+    vistas.forEach(function (s) { s.hidden = (s.dataset.vista !== vista); });
+    $('cabecera').hidden = !!r.parte;
+    $('barra').hidden = !r.parte;
+    $('nav').hidden = !r.parte;
+    $('avance').hidden = !r.parte;
+    $('expediente').hidden = !r.parte;
+    document.body.classList.toggle('con-panel', !!r.parte);
+
+    if (r.parte) {
+      var ruta = RUTAS[r.parte];
+      $('barra-titulo').textContent = r.parte === 'laboratorio-2' && solo() ? 'Laboratorio 2 · 40 min' : ruta.titulo;
+      var ol = $('nav-pasos');
+      ol.textContent = '';
+      ruta.pasos.forEach(function (p, i) {
+        var li = crear('li', i + 1 === r.paso ? 'actual' : (i + 1 < r.paso ? 'hecho' : ''));
+        var a = crear('a');
+        a.href = '#' + r.parte + '-paso-' + (i + 1);
+        if (i + 1 === r.paso) a.setAttribute('aria-current', 'step');
+        var num = crear('span', 'num', String(i + 1));
+        num.setAttribute('aria-hidden', 'true');
+        var txt = crear('span', 'txt');
+        var nom = crear('span', 'nom');
+        nom.appendChild(crear('span', 'oculto-visual', 'Paso ' + (i + 1) + ': '));
+        nom.appendChild(document.createTextNode(p.n));
+        txt.appendChild(nom);
+        txt.appendChild(crear('span', 'tmp', p.t));
+        a.appendChild(num); a.appendChild(txt);
+        li.appendChild(a);
+        ol.appendChild(li);
+      });
+      $('btn-continuar').hidden = (r.paso === ruta.pasos.length);
+      if (estado[ruta.e].paso !== r.paso) { estado[ruta.e].paso = r.paso; guardar(); }
+    }
+    refrescar();
+    if (conFoco) {
+      window.scrollTo(0, 0);
+      var seccion = document.querySelector('.vista[data-vista="' + vista + '"]');
+      var h = seccion && seccion.querySelector('h2');
+      if (h) h.focus({ preventScroll: true });
+    }
+  }
+  window.addEventListener('hashchange', function () { irA(true); });
+  $('btn-atras').addEventListener('click', function () {
+    window.location.hash = actual.paso > 1 ? '#' + actual.parte + '-paso-' + (actual.paso - 1) : '#inicio';
+  });
+  $('btn-continuar').addEventListener('click', function () {
+    if (actual.parte && actual.paso < RUTAS[actual.parte].pasos.length) {
+      window.location.hash = '#' + actual.parte + '-paso-' + (actual.paso + 1);
+    }
+  });
+
+  $('btn-borrar').addEventListener('click', function () {
+    if (!window.confirm('Se borrarán todas tus respuestas de la sesión 3 en este dispositivo. ¿Quieres continuar?')) return;
+    try { window.localStorage.removeItem(CLAVE); } catch (e) { /* nada */ }
+    estado = inicial();
+    firmaListas = null;
+    construirExtras();
+    todos('.estado[id^="estado-"]').forEach(function (e) { e.textContent = ''; });
+    $('texto-corregida').hidden = true;
+    pintarCampos();
+    if (window.location.hash === '#inicio') irA(true); else window.location.hash = '#inicio';
+  });
+
+  /* ---------- Arranque ---------- */
+  refrescar();
+  pintarCampos();
+  irA(false);
+})();
+</script>
+</body>
+</html>

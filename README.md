@@ -10,6 +10,7 @@ Es un sitio estático, sin frameworks, sin build y sin backend. No se conecta a 
 index.html                    Página de inicio con el menú de laboratorios
 sesion-1/index.html           Sesión 1: Pide bien y verifica (4 pasos, 50 min)
 sesion-2/index.html           Sesión 2: laboratorio individual (30 min) y reto en parejas (40 min)
+sesion-3/index.html           Sesión 3: verificar afirmaciones, individual (30 min) y en parejas (40 min)
 .github/workflows/pages.yml   Despliegue automático en GitHub Pages
 ```
 
@@ -37,8 +38,11 @@ Direcciones para compartir (un código QR en la primera diapositiva funciona bie
 - Sesión 2, portada: `https://usuario.github.io/repositorio/sesion-2/`
 - Sesión 2, laboratorio individual: `https://usuario.github.io/repositorio/sesion-2/#laboratorio`
 - Sesión 2, reto en parejas: `https://usuario.github.io/repositorio/sesion-2/#reto`
+- Sesión 3, portada: `https://usuario.github.io/repositorio/sesion-3/`
+- Sesión 3, laboratorio 1 (individual): `https://usuario.github.io/repositorio/sesion-3/#laboratorio-1`
+- Sesión 3, laboratorio 2 (en parejas): `https://usuario.github.io/repositorio/sesion-3/#laboratorio-2`
 
-Los enlaces `#laboratorio` y `#reto` abren cada parte en el paso donde iba el alumno (o en el primero, si no ha empezado). Para el reto, pega el enlace en el chat de Zoom antes de abrir las salas.
+Los enlaces `#laboratorio` y `#reto` (sesión 2) y `#laboratorio-1` y `#laboratorio-2` (sesión 3) abren cada parte en el paso donde iba el alumno (o en el primero, si no ha empezado). Para el reto, pega el enlace en el chat de Zoom antes de abrir las salas.
 
 Cada cambio que subas a `main` se publica solo.
 
@@ -50,9 +54,13 @@ Cada cambio que subas a `main` se publica solo.
 
 ## Probar antes de la clase
 
-Abre `index.html` con doble clic o entra a la dirección publicada. Enlaces directos a los pasos de la sesión 1: `sesion-1/index.html#preparar`, `#caso-guiado`, `#tu-caso`, `#resumen`. En la sesión 2: `sesion-2/index.html#laboratorio-1` a `#laboratorio-3` y `#reto-1` a `#reto-5`.
+Abre `index.html` con doble clic o entra a la dirección publicada. Enlaces directos a los pasos de la sesión 1: `sesion-1/index.html#preparar`, `#caso-guiado`, `#tu-caso`, `#resumen`. En la sesión 2: `sesion-2/index.html#laboratorio-1` a `#laboratorio-3` y `#reto-1` a `#reto-5`. En la sesión 3: `sesion-3/index.html#laboratorio-1-paso-1` a `#laboratorio-1-paso-3` y `#laboratorio-2-paso-1` a `#laboratorio-2-paso-5`.
 
 Para empezar de cero en un dispositivo, usa el enlace "Borrar mis respuestas" al final del laboratorio.
+
+## Cambiar el contenido de la sesión 3
+
+Todo está en `sesion-3/index.html`, en el objeto `DATOS` al comienzo del bloque `<script>`: el expediente (documentos, apartados, fechas, vigencia y alcance), la pregunta que se copia, la respuesta preparada, la clave de las 11 afirmaciones y los temas del laboratorio 2. Las tarjetas del expediente, el texto que se copia y la clave se arman desde ahí, así que basta con editar un solo lugar.
 
 ## Cambiar el contenido de la sesión 2
 

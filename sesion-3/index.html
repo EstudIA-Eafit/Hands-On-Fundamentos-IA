@@ -349,6 +349,7 @@ summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .4
 .grupo-cab { display: flex; align-items: center; gap: .55rem; margin-bottom: .6rem; }
 .grupo-cab h3 { margin: 0; }
 .vacio { color: var(--suave); font-style: italic; margin: 0; }
+.aclara { background: var(--aviso-fondo); border-left: 5px solid var(--marcador); border-radius: 10px; padding: .55rem .8rem; margin-bottom: .6rem; }
 
 /* Pie */
 .avance { display: flex; justify-content: space-between; gap: .6rem; margin: 1.4rem 0 1rem; }
@@ -542,6 +543,16 @@ summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .4
     <div class="paso-cab">
       <p class="meta">Laboratorio 2 · Paso 1 de 5 · 8 minutos</p>
       <h2 id="t-b1" tabindex="-1">Pregúntale a tu IA</h2>
+    </div>
+
+    <div class="tarjeta">
+      <h3>La situación</h3>
+      <p data-solo="Imagina que eres una persona emprendedora del barrio y quieres poner un puesto en la feria. Te llegaron varios papeles: circulares, un acta, reglamentos, un volante y un mensaje de WhatsApp. No tienes tiempo de leerlos todos, así que se los pasas a la IA y le preguntas qué necesitas saber. La pregunta es: ¿le crees?">Imaginen que son emprendedores del barrio y quieren poner un puesto en la feria. Les llegaron varios papeles: circulares, un acta, reglamentos, un volante y un mensaje de WhatsApp. No tienen tiempo de leerlos todos, así que se los pasan a la IA y le preguntan qué necesitan saber. La pregunta es: ¿le creen?</p>
+    </div>
+
+    <div class="nota">
+      <p><strong>¿Dónde vas a usar esto?</strong></p>
+      <p>Harás lo mismo cada vez que le pases documentos a la IA: el contrato de arriendo, una circular del colegio, las condiciones de un subsidio, una póliza o los correos del trabajo. La feria es solo el terreno de práctica.</p>
     </div>
 
     <div class="nota">
@@ -1503,7 +1514,8 @@ summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .4
   var GRUPOS = [
     { k: 'mantener', n: 'Mantener', est: 'confirmada', d: 'Lo confirmado.', vacio: 'Ningún tema quedó confirmado.', de: ['confirmada'] },
     { k: 'corregir', n: 'Corregir', est: 'contradicha', d: 'Lo contradicho. Escriban el dato correcto y su fuente.', vacio: 'Ningún tema quedó contradicho.', de: ['contradicha'] },
-    { k: 'preguntar', n: 'Preguntar a la coordinación', est: 'noconf', d: 'Lo no confirmado. Redacten la pregunta.', vacio: 'Ningún tema quedó sin confirmar.', de: ['noconf'] }
+    { k: 'preguntar', n: 'Preguntar a la coordinación', est: 'noconf', d: 'Lo no confirmado. Redacten la pregunta.', vacio: 'Ningún tema quedó sin confirmar.', de: ['noconf'],
+      aclara: 'En la vida real, la coordinación es quien emitió el documento: el colegio, la administración, la entidad o tu jefe.' }
   ];
   var firmaListas = null;
   function pintarListas() {
@@ -1519,6 +1531,7 @@ summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .4
       cab.appendChild(icono(g.est));
       cab.appendChild(crear('h3', '', g.n));
       tj.appendChild(cab);
+      if (g.aclara) tj.appendChild(crear('p', 'aclara', g.aclara));
       tj.appendChild(crear('p', 'ayuda', g.k === 'mantener' ? g.d : t(g.d, g.d.replace('Escriban', 'Escribe').replace('Redacten', 'Redacta'))));
       var items = temas.filter(function (x) { return x.cat === g.k; });
       if (!items.length) {

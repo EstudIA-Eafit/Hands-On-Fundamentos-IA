@@ -11,6 +11,7 @@ index.html                    Página de inicio con el menú de laboratorios
 sesion-1/index.html           Sesión 1: Pide bien y verifica (4 pasos, 50 min)
 sesion-2/index.html           Sesión 2: laboratorio individual (30 min) y reto en parejas (40 min)
 sesion-3/index.html           Sesión 3: verificar afirmaciones, individual (30 min) y en parejas (40 min)
+sesion-4/index.html           Sesión 4: datos, trato justo y decisiones revisables, individual (35 min) y en parejas (45 min)
 .github/workflows/pages.yml   Despliegue automático en GitHub Pages
 ```
 
@@ -41,8 +42,11 @@ Direcciones para compartir (un código QR en la primera diapositiva funciona bie
 - Sesión 3, portada: `https://usuario.github.io/repositorio/sesion-3/`
 - Sesión 3, laboratorio 1 (individual): `https://usuario.github.io/repositorio/sesion-3/#laboratorio-1`
 - Sesión 3, laboratorio 2 (en parejas): `https://usuario.github.io/repositorio/sesion-3/#laboratorio-2`
+- Sesión 4, portada: `https://usuario.github.io/repositorio/sesion-4/`
+- Sesión 4, laboratorio 1 (individual): `https://usuario.github.io/repositorio/sesion-4/#laboratorio-1`
+- Sesión 4, laboratorio 2 (en parejas): `https://usuario.github.io/repositorio/sesion-4/#laboratorio-2`
 
-Los enlaces `#laboratorio` y `#reto` (sesión 2) y `#laboratorio-1` y `#laboratorio-2` (sesión 3) abren cada parte en el paso donde iba el alumno (o en el primero, si no ha empezado). Para el reto, pega el enlace en el chat de Zoom antes de abrir las salas.
+Los enlaces `#laboratorio` y `#reto` (sesión 2) y `#laboratorio-1` y `#laboratorio-2` (sesiones 3 y 4) abren cada parte en el paso donde iba el alumno (o en el primero, si no ha empezado). Para el reto, pega el enlace en el chat de Zoom antes de abrir las salas.
 
 Cada cambio que subas a `main` se publica solo.
 
@@ -54,9 +58,13 @@ Cada cambio que subas a `main` se publica solo.
 
 ## Probar antes de la clase
 
-Abre `index.html` con doble clic o entra a la dirección publicada. Enlaces directos a los pasos de la sesión 1: `sesion-1/index.html#preparar`, `#caso-guiado`, `#tu-caso`, `#resumen`. En la sesión 2: `sesion-2/index.html#laboratorio-1` a `#laboratorio-3` y `#reto-1` a `#reto-5`. En la sesión 3: `sesion-3/index.html#laboratorio-1-paso-1` a `#laboratorio-1-paso-3` y `#laboratorio-2-paso-1` a `#laboratorio-2-paso-5`.
+Abre `index.html` con doble clic o entra a la dirección publicada. Enlaces directos a los pasos de la sesión 1: `sesion-1/index.html#preparar`, `#caso-guiado`, `#tu-caso`, `#resumen`. En la sesión 2: `sesion-2/index.html#laboratorio-1` a `#laboratorio-3` y `#reto-1` a `#reto-5`. En la sesión 3: `sesion-3/index.html#laboratorio-1-paso-1` a `#laboratorio-1-paso-3` y `#laboratorio-2-paso-1` a `#laboratorio-2-paso-5`. En la sesión 4: `sesion-4/index.html#laboratorio-1-paso-1` a `#laboratorio-1-paso-4` y `#laboratorio-2-paso-1` a `#laboratorio-2-paso-7`.
 
 Para empezar de cero en un dispositivo, usa el enlace "Borrar mis respuestas" al final del laboratorio.
+
+## Cambiar el contenido de la sesión 4
+
+Todo está en `sesion-4/index.html`, en el objeto `DATOS` al comienzo del bloque `<script>`: el caso de La Espiga con su tabla, los 16 campos del formulario y su clave, el reto de Doña Rosa, las justificaciones de la IA con su clave, y los dos casos del laboratorio 2 (tablas, requisitos, datos necesarios, instrucción descuidada, reclamo y referencia). Las tablas, los textos que se copian y las claves se arman desde ahí. Todos los casos y las personas son ficticios.
 
 ## Cambiar el contenido de la sesión 3
 

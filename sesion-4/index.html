@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Práctica de la sesión 4 de Fundamentos de IA: datos necesarios, trato justo y decisiones revisables.">
+<title>Sesión 4 · Fundamentos de IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fondo: #faf6ee;
+  --superficie: #ffffff;
+  --hundido: #f1ebdf;
+  --tinta: #1c2430;
+  --suave: #4f5a6b;
+  --linea: #d5ccba;
+  --primario: #0f5e5a;
+  --primario-tinta: #ffffff;
+  --primario-suave: #dcefec;
+  --marcador: #ffe14d;
+  --marcador-tinta: #1c1a05;
+  --aviso-fondo: #fff4c7;
+  --sombra: 0 1px 2px rgba(28, 36, 48, .06), 0 6px 20px rgba(28, 36, 48, .06);
+  /* Estados: mismo color, ícono y nombre en toda la página */
+  --conf: #1b6e3c;   --conf-fondo: #d9f2e0;   --conf-tinta: #ffffff;
+  --contra: #ad3118; --contra-fondo: #fbded6; --contra-tinta: #ffffff;
+  --duda: #8a5300;   --duda-fondo: #fdecc8;   --duda-tinta: #ffffff;
+  --nada: #5b6575;   --nada-fondo: #e4e7ee;   --nada-tinta: #ffffff;
+  --titulos: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --texto: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #12171d;
+    --superficie: #1b222b;
+    --hundido: #151b22;
+    --tinta: #eef1f5;
+    --suave: #aab4c3;
+    --linea: #364150;
+    --primario: #74d9cf;
+    --primario-tinta: #082422;
+    --primario-suave: #17393a;
+    --marcador: #f5d63a;
+    --marcador-tinta: #1c1a05;
+    --aviso-fondo: #3a3211;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
+    --conf: #7fdc9f;   --conf-fondo: #173d27;   --conf-tinta: #0b1f12;
+    --contra: #ff9d85; --contra-fondo: #4a2018; --contra-tinta: #2a0d07;
+    --duda: #f2c062;   --duda-fondo: #3d2e10;   --duda-tinta: #261a03;
+    --nada: #aab4c3;   --nada-fondo: #2b3340;   --nada-tinta: #12171d;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 106.25%; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font-family: var(--texto); font-size: 1rem; line-height: 1.55;
+}
+h1, h2, h3 { font-family: var(--titulos); line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0 0 .8rem; }
+a { color: var(--primario); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 3px; border-radius: 6px; }
+h2:focus, h3:focus { outline: none; }
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.ancho { max-width: 44rem; margin: 0 auto; padding: 0 1rem; }
+
+/* Encabezados */
+.cabecera { padding: 1.1rem 0 .4rem; }
+.volver { margin: 0 0 .7rem; font-size: .95rem; }
+.volver a { display: inline-block; padding: .3rem 0; font-weight: 700; text-decoration: none; }
+.volver a:hover { text-decoration: underline; }
+.sobretitulo {
+  font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--suave); font-weight: 700; margin: 0 0 .3rem;
+}
+.cabecera h1 { font-size: clamp(1.5rem, 6vw, 2.1rem); font-weight: 800; letter-spacing: -.01em; }
+.barra { padding: .7rem 0 .5rem; }
+.barra .ancho { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .9rem; }
+.barra a { font-weight: 700; text-decoration: none; padding: .3rem 0; }
+.barra a:hover { text-decoration: underline; }
+.barra span { color: var(--suave); font-weight: 700; font-size: .93rem; }
+
+/* Navegación de pasos */
+.pasos {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--fondo); border-bottom: 1px solid var(--linea); padding: .5rem 0;
+}
+.pasos ol { list-style: none; margin: 0; padding: 0; display: flex; gap: .4rem; }
+.pasos li { flex: 0 0 auto; min-width: 0; }
+.pasos li.actual { flex: 1 1 auto; }
+.pasos a {
+  display: flex; align-items: center; gap: .5rem;
+  min-height: 3rem; padding: .35rem .6rem .35rem .4rem;
+  border-radius: 999px; border: 1px solid var(--linea);
+  background: var(--superficie); color: var(--tinta); text-decoration: none;
+}
+.pasos .num {
+  flex: none; width: 2rem; height: 2rem; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700;
+  background: var(--hundido); color: var(--tinta);
+}
+.pasos .txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.pasos .nom { font-weight: 700; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pasos .tmp { font-size: .76rem; color: var(--suave); white-space: nowrap; }
+.pasos li.hecho .num { background: var(--primario-suave); color: var(--primario); }
+.pasos li.actual a { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.pasos li.actual .num { background: var(--primario-tinta); color: var(--primario); }
+.pasos li.actual .tmp { color: inherit; opacity: .9; }
+@media (max-width: 43.99rem) {
+  .pasos ol { align-items: stretch; }
+  .pasos a { height: 100%; border-radius: 16px; }
+  .pasos li.actual a { padding: .35rem .5rem .35rem .4rem; gap: .4rem; }
+  .pasos li.actual .nom { white-space: normal; overflow: visible; font-size: .82rem; }
+  .pasos li:not(.actual) a { flex-direction: column; justify-content: center; gap: .1rem; padding: .3rem .2rem; min-width: 2.8rem; }
+  .pasos li:not(.actual) .num { width: 1.6rem; height: 1.6rem; font-size: .9rem; }
+  .pasos li:not(.actual) .tmp { font-size: .7rem; }
+  .pasos li:not(.actual) .nom,
+  .pasos ol.muchos li .nom {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+  }
+  /* Con muchos pasos, todos del mismo ancho: el nombre del paso está en el título de la página */
+  .pasos ol.muchos { gap: .3rem; }
+  .pasos ol.muchos li, .pasos ol.muchos li.actual { flex: 1 1 0; }
+  .pasos ol.muchos li a { flex-direction: column; justify-content: center; gap: .1rem; padding: .3rem .1rem; min-width: 0; }
+  .pasos ol.muchos li .num { width: 1.6rem; height: 1.6rem; font-size: .9rem; }
+  .pasos ol.muchos li .tmp { font-size: .64rem; }
+}
+@media (min-width: 44rem) {
+  .pasos li, .pasos li.actual { flex: 1 1 0; }
+  .pasos .nom { white-space: normal; }
+}
+
+/* Contenido */
+main { padding: 1.2rem 0 1rem; min-width: 0; }
+.paso-cab { margin-bottom: 1rem; }
+.paso-cab .meta { color: var(--suave); font-weight: 700; font-size: .88rem; margin: 0 0 .2rem; }
+.paso-cab h2 { font-size: clamp(1.45rem, 5.5vw, 1.85rem); font-weight: 800; }
+.paso-cab p { margin: .5rem 0 0; color: var(--suave); }
+h3 { font-size: 1.18rem; font-weight: 600; margin-bottom: .5rem; }
+
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; margin-bottom: 1rem; box-shadow: var(--sombra);
+  min-width: 0;
+}
+.tarjeta > :last-child { margin-bottom: 0; }
+.tarjeta ol, .tarjeta ul { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.tarjeta li { margin-bottom: .25rem; }
+.nota {
+  background: var(--aviso-fondo); border-left: 5px solid var(--marcador);
+  border-radius: 10px; padding: .75rem .9rem; margin-bottom: 1rem;
+}
+.nota > :last-child { margin-bottom: 0; }
+.cierre {
+  font-family: var(--titulos); font-weight: 600; font-size: 1.12rem; line-height: 1.3;
+  border-left: 5px solid var(--marcador); padding: .3rem 0 .3rem .8rem; margin: 0 0 .8rem;
+}
+.rotulo {
+  display: inline-block; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--marcador); color: var(--marcador-tinta); border-radius: 6px; padding: .2rem .5rem; margin-bottom: .5rem;
+}
+.cita {
+  margin: 0 0 .8rem; padding: .85rem .95rem; background: var(--hundido);
+  border-radius: 14px; border: 1px dashed var(--linea); font-style: italic;
+}
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  border: 2px solid var(--primario); background: var(--primario); color: var(--primario-tinta);
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;
+}
+.boton.claro { background: transparent; color: var(--primario); }
+.boton.chico { min-height: 2.6rem; padding: .35rem .9rem; font-size: .95rem; }
+.boton:active { transform: translateY(1px); }
+.fila { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: .8rem; }
+.estado { color: var(--suave); font-size: .95rem; margin: 0 0 .8rem; }
+.estado:empty { display: none; }
+
+/* Campos */
+.campo { margin-bottom: .9rem; }
+.campo > label { display: block; font-weight: 700; margin-bottom: .3rem; }
+.ayuda { display: block; font-weight: 400; color: var(--suave); font-size: .93rem; }
+textarea, select, input[type="text"] {
+  width: 100%; font: inherit; color: var(--tinta); background: var(--fondo);
+  border: 2px solid var(--linea); border-radius: 12px; padding: .6rem .7rem;
+}
+textarea { min-height: 5.2rem; resize: vertical; }
+textarea.alto { min-height: 9rem; }
+select, input[type="text"] { min-height: 3rem; }
+textarea:focus-visible, select:focus-visible, input[type="text"]:focus-visible { border-color: var(--primario); outline-offset: 1px; }
+textarea::placeholder, input::placeholder { color: var(--suave); opacity: .85; }
+fieldset { border: 0; margin: 0 0 1rem; padding: 0; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: .4rem; }
+
+.opciones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.opciones label { position: relative; display: block; flex: 1 1 auto; cursor: pointer; }
+.opciones input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opciones label > span {
+  display: flex; align-items: center; justify-content: center; gap: .45rem; text-align: center;
+  min-height: 2.9rem; padding: .45rem .9rem; border-radius: 12px;
+  border: 2px solid var(--linea); background: var(--superficie); font-weight: 700;
+}
+.opciones input:checked + span { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.opciones input:focus-visible + span { outline: 3px solid var(--primario); outline-offset: 3px; }
+.opciones.estados { display: grid; grid-template-columns: 1fr; }
+.opciones.estados label > span { justify-content: flex-start; text-align: left; padding: .45rem .7rem; }
+
+.casilla {
+  display: flex; gap: .7rem; align-items: flex-start; cursor: pointer;
+  padding: .65rem .8rem; border: 2px solid var(--linea); border-radius: 14px;
+  background: var(--superficie); font-weight: 700; margin-bottom: .5rem;
+}
+.casilla input { flex: none; width: 1.5rem; height: 1.5rem; margin: .1rem 0 0; accent-color: var(--primario); }
+.casillas { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0 .5rem; }
+
+.salida {
+  white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0 0 .8rem;
+  background: var(--hundido); border: 1px dashed var(--linea); border-radius: 12px;
+  padding: .8rem .9rem; -webkit-user-select: text; user-select: text;
+}
+.salida.chica { font-size: .9rem; max-height: 20rem; overflow: auto; }
+.salida.vacia { color: var(--suave); font-style: italic; }
+details { margin-bottom: .8rem; }
+summary { cursor: pointer; font-weight: 700; color: var(--primario); padding: .45rem 0; }
+
+/* Estados: ícono + nombre + color */
+.ico {
+  display: inline-grid; place-items: center; flex: none;
+  width: 1.45rem; height: 1.45rem; border-radius: 50%;
+}
+.ico svg { width: 1rem; height: 1rem; display: block; }
+.ico.est-confirmada { background: var(--conf); color: var(--conf-tinta); }
+.ico.est-contradicha { background: var(--contra); color: var(--contra-tinta); }
+.ico.est-noconf { background: var(--duda); color: var(--duda-tinta); }
+.ico.est-nomenciono { background: var(--nada); color: var(--nada-tinta); }
+.estados input:checked + span.est-confirmada { background: var(--conf-fondo); border-color: var(--conf); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--conf); }
+.estados input:checked + span.est-contradicha { background: var(--contra-fondo); border-color: var(--contra); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--contra); }
+.estados input:checked + span.est-noconf { background: var(--duda-fondo); border-color: var(--duda); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--duda); }
+.chip-estado {
+  display: inline-flex; align-items: center; gap: .4rem; font-weight: 700;
+  padding: .15rem .6rem .15rem .2rem; border-radius: 999px; border: 2px solid;
+}
+.chip-estado.est-confirmada { background: var(--conf-fondo); border-color: var(--conf); }
+.chip-estado.est-contradicha { background: var(--contra-fondo); border-color: var(--contra); }
+.chip-estado.est-noconf { background: var(--duda-fondo); border-color: var(--duda); }
+.leyenda-estados { list-style: none; padding: 0 !important; margin: 0 0 .8rem !important; display: grid; gap: .55rem; }
+.leyenda-estados li { display: flex; gap: .6rem; align-items: flex-start; margin: 0; }
+.marca { font-weight: 700; }
+.marca.si { color: var(--conf); }
+.marca.no { color: var(--contra); }
+.marca.medio { color: var(--duda); }
+
+/* Portada */
+.ideas { margin: 0 0 1.2rem; padding-left: 1.2rem; }
+.ideas li { margin-bottom: .45rem; }
+.menu { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 1rem; }
+.lab {
+  position: relative; background: var(--superficie); border: 1px solid var(--linea);
+  border-radius: 18px; padding: 1rem; box-shadow: var(--sombra);
+}
+.lab:hover, .lab:focus-within { border-color: var(--primario); }
+.lab h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: .35rem; }
+.lab h3 a { color: inherit; text-decoration: none; }
+.lab h3 a::after { content: ""; position: absolute; inset: 0; border-radius: 18px; }
+.lab p { margin-bottom: .5rem; }
+.lab .datos { color: var(--suave); font-size: .93rem; font-weight: 700; margin-bottom: .9rem; }
+.lab .abrir {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 3rem; padding: .6rem 1.15rem; border-radius: 999px;
+  background: var(--primario); color: var(--primario-tinta); font-weight: 700;
+}
+
+/* Caso plegable */
+.caso {
+  background: var(--hundido); border: 1px solid var(--linea); border-radius: 18px;
+  padding: .3rem .95rem; margin-bottom: 1rem;
+}
+.caso[open] { padding-bottom: .95rem; }
+.caso > summary { font-size: 1.02rem; }
+.caso .requisitos { background: var(--superficie); border-radius: 12px; padding: .65rem .8rem; }
+
+/* Tablas: se desplazan dentro de su contenedor, con la columna Código fija */
+.tabla-wrap {
+  max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--linea); border-radius: 12px; background: var(--superficie); margin: 0 0 .8rem;
+}
+.tabla-wrap:focus-visible { outline-offset: 2px; }
+table { border-collapse: separate; border-spacing: 0; font-size: .92rem; width: max-content; min-width: 100%; }
+th, td { padding: .45rem .65rem; border-bottom: 1px solid var(--linea); text-align: left; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+thead th { background: var(--hundido); font-weight: 700; }
+th:first-child, td:first-child {
+  position: sticky; left: 0; z-index: 1; background: var(--superficie); font-weight: 700;
+  box-shadow: 1px 0 0 var(--linea);
+}
+thead th:first-child { background: var(--hundido); z-index: 2; }
+tr.resalta td { background: var(--aviso-fondo); }
+.pista-tabla { font-size: .88rem; color: var(--suave); margin: -.4rem 0 .8rem; }
+
+/* Laboratorio 1 */
+.campo-form { display: grid; gap: .3rem; padding: .7rem 0; border-top: 1px dashed var(--linea); }
+.campo-form:first-child { border-top: 0; padding-top: 0; }
+.campo-form label { font-weight: 700; }
+.conteo { font-weight: 700; font-size: 1.05rem; margin: 0 0 .8rem; }
+.candidato .datos-fila { font-size: .95rem; margin-bottom: .2rem; }
+.candidato .datos-fila b { font-weight: 700; }
+.candidato .justif { margin: .6rem 0 .9rem; }
+.etiqueta-res {
+  display: inline-block; font-size: .85rem; font-weight: 700; border-radius: 6px; padding: .1rem .5rem; margin-bottom: .45rem;
+  border: 1.5px solid var(--linea);
+}
+.etiqueta-res.si { background: var(--primario); border-color: var(--primario); color: var(--primario-tinta); }
+.puntaje { font-family: var(--titulos); font-weight: 800; font-size: 1.5rem; margin-bottom: .3rem; }
+.clave-lista { list-style: none; padding: 0 !important; margin: 0 0 1rem !important; display: grid; gap: .7rem; }
+.clave-lista > li { border: 1px solid var(--linea); border-radius: 12px; padding: .75rem .85rem; margin: 0; background: var(--superficie); }
+.clave-lista .que { font-weight: 700; margin-bottom: .4rem; }
+.clave-lista p { margin: .35rem 0 0; }
+
+/* Laboratorio 2 */
+.casos { display: grid; gap: 1rem; margin-bottom: 1rem; }
+@media (min-width: 40rem) { .casos { grid-template-columns: 1fr 1fr; } }
+.caso-card { position: relative; display: block; cursor: pointer; margin: 0; }
+.caso-card input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.caso-card .cuerpo {
+  display: block; height: 100%; background: var(--superficie); border: 2px solid var(--linea);
+  border-radius: 18px; padding: 1rem; box-shadow: var(--sombra);
+}
+.caso-card .cuerpo b { display: block; font-family: var(--titulos); font-size: 1.25rem; font-weight: 800; margin: .2rem 0 .4rem; }
+.caso-card .cuerpo span { display: block; margin-top: .4rem; }
+.caso-card .elegido { display: none; margin-top: .6rem; font-weight: 700; color: var(--primario); }
+.caso-card input:checked + .cuerpo { border-color: var(--primario); box-shadow: inset 0 0 0 2px var(--primario); }
+.caso-card input:checked + .cuerpo .elegido { display: block; }
+.caso-card input:focus-visible + .cuerpo { outline: 3px solid var(--primario); outline-offset: 3px; }
+.sugerencias { display: flex; flex-wrap: wrap; gap: .45rem; margin: 0 0 .9rem; padding: 0; list-style: none; }
+.ficha {
+  font: inherit; font-size: .95rem; color: var(--tinta); cursor: pointer; text-align: left;
+  min-height: 2.75rem; padding: .4rem .85rem; border-radius: 999px;
+  border: 1.5px solid var(--primario); background: var(--primario-suave);
+}
+.aviso-datos { background: var(--aviso-fondo); border-left: 5px solid var(--marcador); border-radius: 10px; padding: .7rem .85rem; margin: .3rem 0 .9rem; }
+.aviso-datos p:last-child { margin-bottom: 0; }
+.persona { border-left: 6px solid var(--primario); }
+.resumen-menciones { font-family: var(--titulos); font-weight: 600; font-size: 1.15rem; }
+.sin-caso-aviso { display: none; }
+body.sin-caso .sin-caso-aviso { display: block; }
+body.sin-caso .con-caso { display: none; }
+
+/* Pie */
+.avance { display: flex; justify-content: space-between; gap: .6rem; margin: 1.4rem 0 1rem; }
+.avance .boton { min-width: 8rem; }
+.avance .derecha { margin-left: auto; }
+.pie { border-top: 1px solid var(--linea); padding: 1rem 0 2rem; color: var(--suave); font-size: .92rem; }
+.pie p { margin: 0 0 .4rem; }
+.enlace {
+  font: inherit; color: var(--suave); background: none; border: 0; padding: .4rem 0;
+  text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .vista { animation: entra .25s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<header class="cabecera" id="cabecera">
+  <div class="ancho">
+    <p class="volver"><a href="../index.html">‹ Todos los laboratorios</a></p>
+    <p class="sobretitulo">Fundamentos de IA · Sesión 4 de 8</p>
+    <h1>Datos, trato justo y decisiones revisables</h1>
+  </div>
+</header>
+
+<div class="barra" id="barra" hidden>
+  <div class="ancho">
+    <a href="#inicio">‹ Sesión 4</a>
+    <span id="barra-titulo"></span>
+  </div>
+</div>
+
+<nav class="pasos" id="nav" aria-label="Pasos" hidden>
+  <div class="ancho"><ol id="nav-pasos"></ol></div>
+</nav>
+
+<main class="ancho">
+
+  <!-- Casos plegables, visibles en todos los pasos de cada laboratorio -->
+  <details class="caso" id="caso-l1" hidden>
+    <summary>Ver el caso: Panadería La Espiga</summary>
+    <div id="caso-l1-cuerpo"></div>
+  </details>
+  <details class="caso" id="caso-l2" hidden>
+    <summary id="caso-l2-titulo">Ver el caso</summary>
+    <div id="caso-l2-cuerpo"></div>
+  </details>
+
+  <!-- PORTADA -->
+  <section class="vista" data-vista="inicio" aria-labelledby="t-inicio">
+    <h2 id="t-inicio" class="oculto-visual" tabindex="-1">Inicio de la sesión 4</h2>
+    <p><strong>Las ideas de hoy</strong></p>
+    <ul class="ideas">
+      <li>Pide solo los datos necesarios para decidir. Un mismo dato puede sobrar en un caso y ser necesario en otro.</li>
+      <li><strong>Seudonimizar</strong> es cambiar los nombres por códigos. No garantiza el anonimato: varios datos juntos pueden señalar a una persona.</li>
+      <li>Un <strong>sesgo</strong> es una tendencia que se repite y que favorece o perjudica a un grupo sin que los criterios lo justifiquen.</li>
+      <li>Una <strong>regla transparente</strong> dice por escrito los requisitos, el orden y cómo se desempata. Junto con una revisión humana y una vía de corrección, reduce el riesgo de sesgo, pero no lo elimina.</li>
+    </ul>
+
+    <ul class="menu" aria-label="Partes de la práctica">
+      <li class="lab">
+        <span class="rotulo">Laboratorio 1 · Individual</span>
+        <h3><a href="#laboratorio-1">Revisar el proceso de La Espiga</a></h3>
+        <p class="datos">3 retos y un cierre · 35 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el laboratorio 1</span>
+      </li>
+      <li class="lab">
+        <span class="rotulo">Laboratorio 2 · En parejas</span>
+        <h3><a href="#laboratorio-2">¿Cómo entra el sesgo?</a></h3>
+        <p class="datos">7 pasos · 45 minutos</p>
+        <span class="abrir" aria-hidden="true">Abrir el laboratorio 2</span>
+      </li>
+    </ul>
+
+    <div class="nota">
+      <p><strong>Todos los casos y las personas de esta práctica son ficticios.</strong> Cualquier parecido con alguien real es coincidencia. Tus respuestas en esta página se guardan solas.</p>
+    </div>
+  </section>
+
+  <!-- ============ LABORATORIO 1 ============ -->
+
+  <section class="vista" data-vista="laboratorio-1-paso-1" aria-labelledby="t-a1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Reto 1 de 3 · 12 minutos</p>
+      <h2 id="t-a1" tabindex="-1">¿Qué datos hacen falta?</h2>
+      <p>Este es el formulario de inscripción de La Espiga. Clasifica cada campo según para qué sirve.</p>
+    </div>
+    <div class="tarjeta">
+      <p>Pide solo los datos necesarios para decidir. Un mismo dato puede sobrar en un caso y ser necesario en otro.</p>
+      <p class="ayuda">Las opciones son: necesario para evaluar, solo para contactar a quien quede, necesario después para contratar, o no necesario para decidir.</p>
+    </div>
+    <p class="conteo" id="r1-conteo" aria-live="polite"></p>
+    <div class="tarjeta" id="r1-campos"></div>
+    <div class="fila" id="r1-fila-clave">
+      <button type="button" class="boton" id="r1-ver-clave">Ver la clave</button>
+    </div>
+    <div id="r1-clave" hidden>
+      <div class="tarjeta">
+        <h3 class="puntaje" id="r1-puntaje" tabindex="-1"></h3>
+        <ul id="r1-generales">
+          <li>Nombre, teléfono y correo sirven para comunicar el resultado, pero no deben estar a la vista de quien evalúa.</li>
+          <li>Algunos datos, como la dirección, pueden pedirse al contratar, no antes de decidir.</li>
+          <li>El año de grado permite calcular la edad, así que también puede delatar un dato que no es criterio.</li>
+        </ul>
+      </div>
+      <ul class="clave-lista" id="r1-lista"></ul>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-1-paso-2" aria-labelledby="t-a2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Reto 2 de 3 · 8 minutos</p>
+      <h2 id="t-a2" tabindex="-1">¿Quién es Doña Rosa?</h2>
+      <p>La tabla que recibió la IA no tenía nombres. ¿Alcanza con eso para que nadie sea reconocido?</p>
+    </div>
+    <div class="tarjeta">
+      <span class="rotulo">Grupo de WhatsApp del barrio San Luis</span>
+      <p class="cita" id="r2-mensaje"></p>
+      <div class="campo">
+        <label for="r2-codigo">¿Qué código tiene Doña Rosa?</label>
+        <select id="r2-codigo" data-campo="l1.r2.codigo"></select>
+      </div>
+      <div id="r2-respuesta" class="aviso-datos" aria-live="polite" hidden></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Juego de filtros</h3>
+      <p>Marca los datos del mensaje y mira cuántas filas de la tabla quedan.</p>
+      <fieldset>
+        <legend>Filtrar la tabla por</legend>
+        <div class="casillas" id="r2-filtros"></div>
+      </fieldset>
+      <p class="conteo" id="r2-quedan" aria-live="polite"></p>
+      <div id="r2-tabla"></div>
+    </div>
+
+    <div class="tarjeta">
+      <fieldset>
+        <legend>¿Qué columnas quitarías de la tabla para que sea más difícil reconocer a alguien sin afectar la evaluación?</legend>
+        <div class="casillas" id="r2-quitar"></div>
+      </fieldset>
+      <div class="fila">
+        <button type="button" class="boton claro" id="r2-ver-sugerida" aria-expanded="false" aria-controls="r2-sugerida">Ver la respuesta sugerida</button>
+      </div>
+      <div id="r2-sugerida" hidden></div>
+    </div>
+
+    <p class="cierre" id="r2-final" hidden>La tabla no tenía nombres y aun así se pudo reconocer a una persona. Cambiar el nombre por un código es seudonimizar, no anonimizar.</p>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-1-paso-3" aria-labelledby="t-a3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Reto 3 de 3 · 12 minutos</p>
+      <h2 id="t-a3" tabindex="-1">¿La IA trató igual a todos?</h2>
+      <p id="r3-contexto"></p>
+    </div>
+    <div class="tarjeta">
+      <p>Un <strong>sesgo</strong> es una tendencia que se repite y que favorece o perjudica a un grupo sin que los criterios lo justifiquen. Hay <strong>diferencia de trato no justificada</strong> cuando personas con los mismos méritos, según los criterios, reciben resultados distintos por algo que no es criterio.</p>
+      <ul class="leyenda-estados" id="r3-leyenda"></ul>
+      <p class="ayuda">Cuenta como acierto si coincide la marca y, cuando usa algo que no es criterio, también el tipo de sesgo.</p>
+    </div>
+    <div id="r3-candidatos"></div>
+    <div class="fila" id="r3-fila-clave">
+      <button type="button" class="boton" id="r3-ver-clave">Ver la clave</button>
+    </div>
+    <div id="r3-clave" hidden>
+      <div class="tarjeta">
+        <h3 class="puntaje" id="r3-puntaje" tabindex="-1"></h3>
+      </div>
+      <ul class="clave-lista" id="r3-lista"></ul>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-1-paso-4" aria-labelledby="t-a4" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 1 · Cierre · 3 minutos</p>
+      <h2 id="t-a4" tabindex="-1">Cierre</h2>
+    </div>
+    <div class="tarjeta">
+      <p id="cierre-l1-texto"></p>
+    </div>
+    <p class="cierre" id="cierre-l1-mensaje"></p>
+    <div class="tarjeta">
+      <h3>Tu resumen</h3>
+      <pre class="salida chica" id="resumen-l1" tabindex="0"></pre>
+      <div class="fila">
+        <button type="button" class="boton" id="btn-copiar-l1">Copiar</button>
+        <button type="button" class="boton claro" id="btn-descargar-l1">Descargar como .txt</button>
+      </div>
+      <p class="estado" id="estado-l1" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ============ LABORATORIO 2 ============ -->
+
+  <section class="vista" data-vista="laboratorio-2-paso-1" aria-labelledby="t-b1" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 1 de 7 · 2 minutos</p>
+      <h2 id="t-b1" tabindex="-1" data-solo="Elige un caso">Elijan un caso</h2>
+    </div>
+    <div class="nota">
+      <p><strong>Cómo se trabaja.</strong> <span data-solo="Trabajas por tu cuenta y haces los dos papeles: la persona A y la persona B. Cada papel va en una conversación nueva de tu IA.">Están en una sala de Zoom de dos personas. Una persona comparte pantalla y llena esta página. La otra le envía su respuesta por el chat de la sala.</span></p>
+    </div>
+    <label class="casilla">
+      <input type="checkbox" data-campo="l2.solo">
+      <span>Estoy trabajando solo</span>
+    </label>
+    <fieldset>
+      <legend data-solo="Al elegir, todo el laboratorio usa los datos de ese caso.">Al elegir, todo el laboratorio usa los datos de ese caso.</legend>
+      <div class="casos" id="casos"></div>
+    </fieldset>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-2" aria-labelledby="t-b2" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 2 de 7 · 8 minutos</p>
+      <h2 id="t-b2" tabindex="-1" data-solo="Tu regla transparente">Su regla transparente</h2>
+      <p>Una regla transparente dice por escrito los requisitos, el orden y cómo se desempata, antes de mirar a las personas.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div class="tarjeta">
+        <h3>Requisitos</h3>
+        <p id="b2-requisitos"></p>
+        <p class="ayuda">Vienen del caso y no se pueden cambiar.</p>
+      </div>
+      <div class="tarjeta">
+        <div class="campo">
+          <label for="b2-orden">Orden <span class="ayuda" data-solo="¿Cómo ordenas a quienes cumplen los requisitos? Toca una sugerencia para agregarla.">¿Cómo ordenan a quienes cumplen los requisitos? Toquen una sugerencia para agregarla.</span></label>
+          <textarea id="b2-orden" data-campo="c.orden"></textarea>
+        </div>
+        <ul class="sugerencias" id="b2-sugerencias" aria-label="Sugerencias para el orden"></ul>
+        <div class="campo">
+          <label for="b2-desempate">Desempate <span class="ayuda">¿Qué pasa si dos personas quedan iguales?</span></label>
+          <textarea id="b2-desempate" data-campo="c.desempate"></textarea>
+        </div>
+      </div>
+      <div class="tarjeta">
+        <fieldset>
+          <legend data-solo="Datos que le darás a la IA (persona B)">Datos que le darán a la IA (persona B)</legend>
+          <p class="ayuda" style="margin-top:-.2rem">El código siempre va, para poder nombrar a cada persona.</p>
+          <div class="casillas" id="b2-datos"></div>
+        </fieldset>
+        <div id="b2-aviso" class="aviso-datos" aria-live="polite" hidden></div>
+      </div>
+      <div class="tarjeta">
+        <h3 data-solo="Tu regla completa">Su regla completa</h3>
+        <pre class="salida" id="b2-regla" tabindex="0"></pre>
+        <div class="fila">
+          <button type="button" class="boton" id="b2-copiar">Copiar</button>
+        </div>
+        <p class="estado" id="estado-b2" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-3" aria-labelledby="t-b3" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 3 de 7 · 8 minutos</p>
+      <h2 id="t-b3" tabindex="-1">Dos instrucciones, dos IA</h2>
+      <p data-solo="Pega cada instrucción en una conversación nueva de tu IA: primero la de A y luego la de B.">Cada uno pega su instrucción en una conversación nueva de su IA.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div class="tarjeta persona">
+        <span class="rotulo" data-solo="Primera conversación">Persona A</span>
+        <h3>Instrucción descuidada</h3>
+        <p>Lleva la tabla completa y pide "los mejores perfiles", sin regla.</p>
+        <div class="fila">
+          <button type="button" class="boton" id="b3-copiar-a">Copiar la instrucción de A</button>
+        </div>
+        <p class="estado" id="estado-b3a" aria-live="polite"></p>
+        <details>
+          <summary>Ver el texto de A</summary>
+          <pre class="salida chica" id="b3-texto-a" tabindex="0"></pre>
+        </details>
+      </div>
+      <div class="tarjeta persona">
+        <span class="rotulo" data-solo="Segunda conversación">Persona B</span>
+        <h3>Instrucción cuidada</h3>
+        <p data-solo="Lleva solo las columnas que marcaste en el paso 2, tu regla completa y la orden de no usar otros datos.">Lleva solo las columnas que marcaron en el paso 2, su regla completa y la orden de no usar otros datos.</p>
+        <div id="b3-aviso" class="aviso-datos" hidden></div>
+        <div class="fila">
+          <button type="button" class="boton" id="b3-copiar-b">Copiar la instrucción de B</button>
+        </div>
+        <p class="estado" id="estado-b3b" aria-live="polite"></p>
+        <details>
+          <summary>Ver el texto de B</summary>
+          <pre class="salida chica" id="b3-texto-b" tabindex="0"></pre>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-4" aria-labelledby="t-b4" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 4 de 7 · 10 minutos</p>
+      <h2 id="t-b4" tabindex="-1">Comparen las decisiones</h2>
+      <p data-solo="Pega las dos respuestas y revísalas con las mismas preguntas.">Peguen las dos respuestas y revísenlas con las mismas preguntas.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div id="b4-respuestas"></div>
+      <div class="tarjeta">
+        <p class="resumen-menciones" id="b4-resumen" aria-live="polite"></p>
+        <div class="fila">
+          <button type="button" class="boton claro" id="b4-ver-ref" aria-expanded="false" aria-controls="b4-ref">Ver la referencia</button>
+        </div>
+        <div id="b4-ref" hidden></div>
+      </div>
+      <p class="cierre">Si la instrucción descuidada no mostró sesgo esta vez, no significa que no aparezca en el siguiente intento.</p>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-5" aria-labelledby="t-b5" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 5 de 7 · 7 minutos</p>
+      <h2 id="t-b5" tabindex="-1">Revisión humana y vía de corrección</h2>
+      <p>La regla reduce el riesgo de sesgo, pero no lo elimina. Por eso una persona revisa, y quien no esté de acuerdo puede reclamar.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div class="tarjeta">
+        <h3>Revisión humana</h3>
+        <div class="campo">
+          <label for="b5-quien">¿Quién revisa?</label>
+          <input type="text" id="b5-quien" data-campo="c.revQuien" placeholder="Ej.: la coordinadora de la fundación">
+        </div>
+        <fieldset>
+          <legend>¿Cuándo revisa?</legend>
+          <div class="opciones">
+            <label><input type="radio" name="c.revCuando" value="Antes de comunicar la decisión"><span>Antes de comunicar la decisión</span></label>
+            <label><input type="radio" name="c.revCuando" value="Después"><span>Después</span></label>
+            <label><input type="radio" name="c.revCuando" value="Otro"><span>Otro</span></label>
+          </div>
+        </fieldset>
+        <div class="campo" id="b5-cuando-otro-campo" hidden>
+          <label for="b5-cuando-otro">¿Cuándo, entonces?</label>
+          <input type="text" id="b5-cuando-otro" data-campo="c.revCuandoOtro">
+        </div>
+        <fieldset>
+          <legend>¿Qué revisa?</legend>
+          <label class="casilla"><input type="checkbox" data-campo="c.revQue.s1"><span>Se usaron solo los criterios</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.revQue.s2"><span>No hay personas con los mismos méritos y resultados distintos</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.revQue.s3"><span>Cada justificación cita un criterio</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.revQue.s4"><span>Los elegidos cumplen los requisitos</span></label>
+        </fieldset>
+        <div class="campo">
+          <label for="b5-otros">Otras cosas que revisa <span class="ayuda">Opcional. Escribe una por línea.</span></label>
+          <textarea id="b5-otros" data-campo="c.revOtros"></textarea>
+        </div>
+      </div>
+      <div class="tarjeta">
+        <h3>Vía de corrección</h3>
+        <div class="campo">
+          <label for="b5-donde">¿Por dónde reclama la persona?</label>
+          <input type="text" id="b5-donde" data-campo="c.corrDonde" placeholder="Ej.: un correo o un formulario">
+        </div>
+        <div class="campo">
+          <label for="b5-plazo">¿En qué plazo?</label>
+          <input type="text" id="b5-plazo" data-campo="c.corrPlazo" placeholder="Ej.: hasta 5 días hábiles después de la decisión">
+        </div>
+        <div class="campo">
+          <label for="b5-responde">¿Quién responde?</label>
+          <input type="text" id="b5-responde" data-campo="c.corrQuien" placeholder="Ej.: alguien distinto de quien decidió">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-6" aria-labelledby="t-b6" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 6 de 7 · 8 minutos</p>
+      <h2 id="t-b6" tabindex="-1" data-solo="Responde el reclamo">Respondan el reclamo</h2>
+      <p data-solo="Responde con tu regla, no con suposiciones.">Respondan con su regla, no con suposiciones.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div class="tarjeta">
+        <span class="rotulo" id="b6-de"></span>
+        <p class="cita" id="b6-reclamo"></p>
+        <label class="casilla">
+          <input type="checkbox" data-campo="c.noExplica">
+          <span data-solo="La decisión que tomé no se puede explicar con mi regla">La decisión que tomamos no se puede explicar con nuestra regla</span>
+        </label>
+        <p class="aviso-datos" id="b6-error" hidden>Entonces la respuesta debe reconocer el error y explicar cómo se corrige.</p>
+        <div class="campo">
+          <label for="b6-respuesta" data-solo="Tu respuesta al reclamo">Su respuesta al reclamo</label>
+          <textarea id="b6-respuesta" class="alto" data-campo="c.respuesta"></textarea>
+        </div>
+      </div>
+      <div class="tarjeta">
+        <fieldset>
+          <legend>Antes de enviarla, revisen que la respuesta:</legend>
+          <label class="casilla"><input type="checkbox" data-campo="c.auto.a1"><span>Explica la decisión con la regla, sin mencionar datos que no son criterios.</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.auto.a2"><span>Dice qué criterio o desempate marcó la diferencia.</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.auto.a3"><span>Ofrece la vía de corrección: dónde, en qué plazo y quién responde.</span></label>
+          <label class="casilla"><input type="checkbox" data-campo="c.auto.a4"><span>Mantiene un tono respetuoso, sin descalificar la duda de la persona.</span></label>
+        </fieldset>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" data-vista="laboratorio-2-paso-7" aria-labelledby="t-b7" hidden>
+    <div class="paso-cab">
+      <p class="meta">Laboratorio 2 · Paso 7 de 7 · 2 minutos</p>
+      <h2 id="t-b7" tabindex="-1">Para compartir</h2>
+      <p>Dos respuestas cortas para contarle al grupo.</p>
+    </div>
+    <div class="nota sin-caso-aviso"><p>Primero elige un caso. <a href="#laboratorio-2-paso-1">Ir al paso 1</a></p></div>
+    <div class="con-caso">
+      <div class="tarjeta">
+        <div class="campo">
+          <label for="b7-q1">¿Qué diferencias aparecieron entre la instrucción descuidada y la cuidada?</label>
+          <textarea id="b7-q1" data-campo="c.q1"></textarea>
+        </div>
+        <div class="campo">
+          <label for="b7-q2" data-solo="¿Cómo respondiste el reclamo?">¿Cómo respondieron el reclamo?</label>
+          <textarea id="b7-q2" data-campo="c.q2"></textarea>
+        </div>
+      </div>
+      <div class="tarjeta">
+        <h3>Resumen</h3>
+        <pre class="salida chica" id="resumen-l2" tabindex="0"></pre>
+        <div class="fila">
+          <button type="button" class="boton" id="btn-copiar-l2">Copiar</button>
+          <button type="button" class="boton claro" id="btn-descargar-l2">Descargar como .txt</button>
+        </div>
+        <p class="estado" id="estado-l2" aria-live="polite"></p>
+      </div>
+      <div class="nota">
+        <p><strong data-solo="Cuando se cierren las salas, vuelve a la sala principal para las conclusiones.">Cuando se cierren las salas, vuelvan a la sala principal para las conclusiones.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="avance" id="avance" hidden>
+    <button type="button" class="boton claro" id="btn-atras">Atrás</button>
+    <button type="button" class="boton derecha" id="btn-continuar">Continuar</button>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <p>Tus respuestas se guardan solo en este dispositivo. Esta página no se conecta a ninguna IA. Los casos y las personas son ficticios.</p>
+    <button type="button" class="enlace" id="btn-borrar">Borrar mis respuestas</button>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     DATOS DE LA SESIÓN: casos, tablas, justificaciones y claves.
+     Todo el contenido editable está en este objeto.
+     ===================================================================== */
+  var DATOS = {
+    lab1: {
+      caso: {
+        titulo: 'Panadería La Espiga',
+        texto: 'La Panadería La Espiga, sede del barrio Centro, abrió una convocatoria para 3 vacantes de auxiliar de caja y atención al cliente. Se presentaron 10 personas. La dueña cambió los nombres por códigos, le pasó la tabla a una IA y le pidió "elegir los mejores perfiles".',
+        requisitos: 'ser bachiller, al menos 6 meses de experiencia en caja o atención al cliente, disponibilidad para turnos de fin de semana y al menos 70 puntos sobre 100 en una prueba práctica de caja.',
+        sinRegla: 'La convocatoria no dice cómo elegir entre quienes cumplen.'
+      },
+      columnas: [
+        { k: 'codigo', n: 'Código' }, { k: 'edad', n: 'Edad' }, { k: 'sexo', n: 'Sexo' }, { k: 'barrio', n: 'Barrio' },
+        { k: 'estrato', n: 'Estrato' }, { k: 'hijos', n: 'Hijos' }, { k: 'nivel', n: 'Nivel educativo' },
+        { k: 'experiencia', n: 'Experiencia' }, { k: 'fines', n: 'Fines de semana' }, { k: 'prueba', n: 'Prueba' }
+      ],
+      criterios: ['nivel', 'experiencia', 'fines', 'prueba'],
+      filas: [
+        ['C-01', '24', 'F', 'Las Palmas', '3', '0', 'Bachiller', '18 meses', 'Sí', '88'],
+        ['C-02', '52', 'F', 'San Luis', '2', '3', 'Bachiller', '18 meses', 'Sí', '88'],
+        ['C-03', '31', 'F', 'Centro', '3', '2', 'Técnico', '24 meses', 'Sí', '85'],
+        ['C-04', '29', 'M', 'Centro', '3', '0', 'Técnico', '24 meses', 'Sí', '85'],
+        ['C-05', '22', 'M', 'Las Palmas', '4', '0', 'Bachiller', '3 meses', 'Sí', '90'],
+        ['C-06', '27', 'F', 'El Mirador', '2', '1', 'Bachiller', '12 meses', 'Sí', '65'],
+        ['C-07', '35', 'M', 'Villa Nueva', '1', '1', 'Bachiller', '30 meses', 'Sí', '92'],
+        ['C-08', '26', 'F', 'Las Palmas', '3', '0', 'Técnico', '12 meses', 'No', '80'],
+        ['C-09', '40', 'M', 'Centro', '4', '2', 'Profesional', '36 meses', 'Sí', '78'],
+        ['C-10', '23', 'F', 'San Luis', '2', '0', 'Bachiller', '8 meses', 'Sí', '75']
+      ],
+
+      // Reto 1: campos del formulario y su clave
+      categorias: [
+        { k: 'evaluar', n: 'Necesario para evaluar' },
+        { k: 'contactar', n: 'Solo para contactar a quien quede' },
+        { k: 'contratar', n: 'Necesario después, para contratar' },
+        { k: 'no', n: 'No necesario para decidir' }
+      ],
+      campos: [
+        { k: 'nombre', n: 'Nombre completo', c: 'contactar', e: 'Sirve para comunicar el resultado, pero no debe estar a la vista de quien evalúa.' },
+        { k: 'cedula', n: 'Cédula', c: 'contratar', e: 'Se necesita para hacer el contrato, no para decidir quién cumple.' },
+        { k: 'nacimiento', n: 'Fecha de nacimiento', c: 'no', e: 'La edad no es un criterio de la convocatoria.' },
+        { k: 'sexo', n: 'Sexo', c: 'no', e: 'No es un criterio de la convocatoria.' },
+        { k: 'civil', n: 'Estado civil', c: 'no', e: 'No es un criterio de la convocatoria.' },
+        { k: 'hijos', n: 'Número de hijos', c: 'no', e: 'No es un criterio. Además, puede llevar a suponer cosas sobre la disponibilidad que la persona no dijo.' },
+        { k: 'direccion', n: 'Dirección y barrio', c: 'no', e: 'Algunos datos, como la dirección, pueden pedirse al contratar, no antes de decidir.' },
+        { k: 'estrato', n: 'Estrato', c: 'no', e: 'No es un criterio de la convocatoria.' },
+        { k: 'telefono', n: 'Teléfono', c: 'contactar', e: 'Sirve para comunicar el resultado, pero no debe estar a la vista de quien evalúa.' },
+        { k: 'correo', n: 'Correo', c: 'contactar', e: 'Sirve para comunicar el resultado, pero no debe estar a la vista de quien evalúa.' },
+        { k: 'foto', n: 'Foto', c: 'no', e: 'No es un criterio y deja ver rasgos que no tienen que ver con el trabajo.' },
+        { k: 'nivel', n: 'Nivel educativo', c: 'evaluar', e: 'Ser bachiller es un requisito.' },
+        { k: 'colegio', n: 'Colegio y año de grado', c: 'no', e: 'Basta con saber si es bachiller. El año de grado permite calcular la edad, así que también puede delatar un dato que no es criterio.' },
+        { k: 'experiencia', n: 'Meses de experiencia', c: 'evaluar', e: 'Se piden al menos 6 meses de experiencia.' },
+        { k: 'fines', n: 'Disponibilidad de fin de semana', c: 'evaluar', e: 'Es un requisito.' },
+        { k: 'prueba', n: 'Puntaje de la prueba', c: 'evaluar', e: 'Se piden al menos 70 puntos.' }
+      ],
+
+      // Reto 2
+      reto2: {
+        mensaje: 'Doña Rosa, la de los tres hijos, que cumplió 52, se presentó a lo de la panadería.',
+        correcta: 'C-02',
+        filtros: [
+          { k: 'sexo', v: 'F', n: 'Sexo = F' },
+          { k: 'barrio', v: 'San Luis', n: 'Barrio = San Luis' },
+          { k: 'hijos', v: '3', n: 'Hijos = 3' },
+          { k: 'edad', v: '52', n: 'Edad = 52' }
+        ],
+        quitar: ['edad', 'sexo', 'barrio', 'estrato', 'hijos']
+      },
+
+      // Reto 3: decisiones de la IA y su clave
+      reto3: {
+        contexto: 'La IA eligió a C-01, C-04 y C-09. Estas fueron sus justificaciones.',
+        candidatos: [
+          { c: 'C-01', res: 'Elegida', elegido: true, j: 'Buen puntaje y experiencia suficiente; perfil joven y dinámico.',
+            clave: 'nocriterio', tipo: 'edad', e: 'Puntaje y experiencia sí son criterios, pero "joven y dinámico" no.' },
+          { c: 'C-02', res: 'No elegida', j: 'Por su edad, el perfil es menos dinámico para el ritmo de la caja.',
+            clave: 'nocriterio', tipo: 'edad', e: 'Tiene la misma experiencia y el mismo puntaje que C-01.' },
+          { c: 'C-03', res: 'No elegida', j: 'Con hijos pequeños, su disponibilidad de fin de semana podría ser limitada.',
+            clave: 'nocriterio', tipo: 'hijos', e: 'Ella marcó que sí tiene disponibilidad y tiene lo mismo que C-04.' },
+          { c: 'C-04', res: 'Elegido', elegido: true, j: 'Buen puntaje, 24 meses de experiencia y sin cargas familiares que limiten su disponibilidad.',
+            clave: 'nocriterio', tipo: 'hijos', e: 'Puntaje y experiencia sí son criterios, pero "sin cargas familiares" no.' },
+          { c: 'C-05', res: 'No elegido', j: 'No cumple la experiencia mínima.',
+            clave: 'criterios', e: '3 meses; el mínimo es 6.' },
+          { c: 'C-06', res: 'No elegida', j: 'No alcanzó el puntaje mínimo.',
+            clave: 'criterios', e: '65; el mínimo es 70.' },
+          { c: 'C-07', res: 'No elegido', j: 'Vive lejos de la sede, con riesgo de impuntualidad.',
+            clave: 'nocriterio', tipo: 'lugar', e: 'Tiene el puntaje más alto.' },
+          { c: 'C-08', res: 'No elegida', j: 'No tiene disponibilidad de fin de semana.',
+            clave: 'criterios', e: 'Es un requisito.' },
+          { c: 'C-09', res: 'Elegido', elegido: true, j: 'Por su nivel profesional y su mayor experiencia.',
+            clave: 'nosabe', e: 'La experiencia es criterio, pero no se dijo cómo pesarla frente al puntaje, y tener nivel profesional no da puntos extra.' },
+          { c: 'C-10', res: 'No elegida', j: 'Puntaje más bajo que los elegidos.',
+            clave: 'nosabe', e: 'Es razonable, pero ninguna regla escrita dice que se ordena por puntaje.' }
+        ]
+      },
+
+      cierre: {
+        texto: 'Si se usan solo los criterios y se ordena por puntaje, quedan C-07 (92), C-01 (88) y C-02 (88). Pero C-01 y C-02 empatan en todo y la convocatoria no dice cómo desempatar. En el laboratorio 2 van a escribir esa regla.',
+        mensaje: 'Los datos que sobraban (edad, hijos y barrio) fueron justamente los que la IA usó para tratar distinto a las personas.'
+      }
+    },
+
+    // Laboratorio 2: los dos casos
+    casos: [
+      {
+        id: 'beca', nombre: 'Caso 1', titulo: 'Beca de cocina', cupos: '2 becas',
+        texto: 'La Fundación Sabores del Barrio ofrece 2 becas para un curso gratuito de cocina. Se inscribieron 6 personas.',
+        requisitos: 'ser mayor de edad, vivir en la localidad Sur (barrios San Luis, El Mirador y Villa Nueva) y no haber recibido esta beca antes.',
+        extra: 'Todos presentaron una prueba básica de cocina de 0 a 100.',
+        sinRegla: 'La convocatoria no dice cómo elegir entre quienes cumplen.',
+        columnas: [
+          { k: 'codigo', n: 'Código' }, { k: 'edad', n: 'Edad' }, { k: 'sexo', n: 'Sexo' }, { k: 'barrio', n: 'Barrio' },
+          { k: 'estrato', n: 'Estrato' }, { k: 'hijos', n: 'Hijos' }, { k: 'ocupacion', n: 'Ocupación' },
+          { k: 'becaAntes', n: 'Beca antes' }, { k: 'prueba', n: 'Prueba' }, { k: 'inscripcion', n: 'Inscripción' }
+        ],
+        filas: [
+          ['B-01', '45', 'F', 'San Luis', '2', '3', 'Desempleada', 'No', '84', '3 de marzo'],
+          ['B-02', '19', 'M', 'El Mirador', '3', '0', 'Estudiante', 'No', '84', '5 de marzo'],
+          ['B-03', '33', 'F', 'Villa Nueva', '1', '1', 'Vendedora', 'No', '79', '2 de marzo'],
+          ['B-04', '28', 'M', 'Las Palmas', '3', '0', 'Mesero', 'No', '91', '1 de marzo'],
+          ['B-05', '60', 'F', 'El Mirador', '2', '2', 'Pensionada', 'No', '88', '4 de marzo'],
+          ['B-06', '25', 'F', 'San Luis', '2', '0', 'Auxiliar', 'Sí', '95', '6 de marzo']
+        ],
+        necesarias: ['barrio', 'becaAntes', 'prueba', 'inscripcion'],
+        noCriterio: ['edad', 'sexo', 'estrato', 'hijos', 'ocupacion'],
+        edadComoMayor: true,
+        notas: { edad: 'La edad solo se necesita como "mayor de edad: sí/no".' },
+        sugerencias: ['Mayor puntaje en la prueba', 'Inscripción más temprana'],
+        instruccionA: 'Estos son los inscritos a 2 becas para un curso de cocina. Requisitos: ser mayor de edad, vivir en la localidad Sur (San Luis, El Mirador o Villa Nueva) y no haber recibido la beca antes. Elige los mejores perfiles y explica por qué.',
+        reclamo: { de: 'B-02', texto: 'Buenas tardes. Saqué 84 en la prueba, igual que la señora que sí quedó. ¿Por qué la eligieron a ella y no a mí? ¿Fue porque soy hombre o porque soy muy joven?' },
+        datosNecesarios: 'Barrio (para comprobar la localidad), beca antes, prueba e inscripción si la usan en su regla. La edad solo se necesita como "mayor de edad: sí/no".',
+        referencia: 'No cumplen B-04 (vive fuera de la localidad) y B-06 (ya recibió la beca). Con la regla de ejemplo "ordenar por prueba y desempatar por la inscripción más temprana" quedan B-05 (88) y B-01 (84, inscrita antes que B-02).'
+      },
+      {
+        id: 'arriendo', nombre: 'Caso 2', titulo: 'Arriendo de un apartamento', cupos: '1 inquilino',
+        texto: 'La propietaria de un apartamento con arriendo de $1.200.000 mensuales recibió 6 solicitudes y elige 1 inquilino.',
+        requisitos: 'ingresos mensuales demostrables de al menos $3.600.000 (tres veces el arriendo), tener codeudor y no tener reportes negativos de pago.',
+        extra: '',
+        sinRegla: 'No dice cómo elegir entre quienes cumplen.',
+        columnas: [
+          { k: 'codigo', n: 'Código' }, { k: 'edad', n: 'Edad' }, { k: 'sexo', n: 'Sexo' }, { k: 'estadoCivil', n: 'Estado civil' },
+          { k: 'hijos', n: 'Hijos' }, { k: 'mascota', n: 'Mascota' }, { k: 'ocupacion', n: 'Ocupación' },
+          { k: 'ingresos', n: 'Ingresos' }, { k: 'codeudor', n: 'Codeudor' }, { k: 'reportes', n: 'Reportes' }, { k: 'solicitud', n: 'Solicitud' }
+        ],
+        filas: [
+          ['A-01', '27', 'M', 'Soltero', '0', 'No', 'Ingeniero', '$5.000.000', 'Sí', 'No', '10 de abril'],
+          ['A-02', '38', 'F', 'Soltera', '2', 'No', 'Enfermera', '$4.200.000', 'Sí', 'No', '8 de abril'],
+          ['A-03', '70', 'M', 'Casado', '0', 'No', 'Pensionado', '$3.800.000', 'Sí', 'No', '9 de abril'],
+          ['A-04', '30', 'F', 'Casada', '1', 'Perro', 'Contadora', '$6.000.000', 'Sí', 'Sí', '7 de abril'],
+          ['A-05', '24', 'F', 'Soltera', '0', 'No', 'Diseñadora', '$3.000.000', 'Sí', 'No', '6 de abril'],
+          ['A-06', '45', 'M', 'Divorciado', '3', 'Gato', 'Comerciante', '$4.500.000', 'No', 'No', '5 de abril']
+        ],
+        necesarias: ['ingresos', 'codeudor', 'reportes', 'solicitud'],
+        noCriterio: ['edad', 'sexo', 'estadoCivil', 'hijos', 'mascota', 'ocupacion'],
+        edadComoMayor: false,
+        notas: { mascota: 'La mascota no es requisito: si la propietaria no la acepta, debe decirlo en la regla desde el principio.' },
+        sugerencias: ['Solicitud más temprana', 'Mayores ingresos'],
+        instruccionA: 'Estas son las solicitudes para arrendar mi apartamento de $1.200.000 al mes. Requisitos: ingresos de al menos $3.600.000, codeudor y sin reportes negativos de pago. Elige el mejor perfil y explica por qué.',
+        reclamo: { de: 'A-03', texto: 'Buenos días. Cumplo todos los requisitos: tengo ingresos, codeudor y nunca me he atrasado en un pago. Creo que no me escogieron por mi edad. ¿Me pueden explicar la decisión?' },
+        datosNecesarios: 'Ingresos, codeudor, reportes y solicitud si la usan en su regla. La mascota no es requisito: si la propietaria no la acepta, debe decirlo en la regla desde el principio.',
+        referencia: 'No cumplen A-04 (tiene reportes), A-05 (no alcanza los ingresos) y A-06 (no tiene codeudor). Cumplen A-01, A-02 y A-03. Con la regla de ejemplo "la primera solicitud completa" queda A-02.'
+      }
+    ],
+    cierreB: 'Aplica solo esta regla. Para cada persona, di si cumple los requisitos y, para las elegidas, qué parte de la regla las ubicó. No uses ningún otro dato.'
+  };
+
+  /* ---------- Configuración ---------- */
+  var CLAVE = 'laboratorio-ia-sesion-4';
+  var SVG = {
+    confirmada: '<path d="M5 10.4l3.2 3.2L15 6.8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
+    contradicha: '<path d="M6.2 6.2l7.6 7.6M13.8 6.2l-7.6 7.6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>',
+    noconf: '<path d="M7.4 7.5a2.7 2.7 0 1 1 3.8 2.5c-.8.4-1.2.9-1.2 1.8v.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="15.2" r="1.3" fill="currentColor"/>'
+  };
+  var MARCAS = {
+    criterios: { n: 'Se apoya solo en los criterios', ico: 'confirmada' },
+    nocriterio: { n: 'Usa algo que no es criterio', ico: 'contradicha' },
+    nosabe: { n: 'La convocatoria no permite saberlo', ico: 'noconf' }
+  };
+  var TIPOS = { edad: 'Edad', hijos: 'Tener hijos', lugar: 'Lugar donde vive', otro: 'Otro' };
+  var REV_QUE = {
+    s1: 'Se usaron solo los criterios',
+    s2: 'No hay personas con los mismos méritos y resultados distintos',
+    s3: 'Cada justificación cita un criterio',
+    s4: 'Los elegidos cumplen los requisitos'
+  };
+  var AUTO = {
+    a1: 'Explica la decisión con la regla, sin mencionar datos que no son criterios.',
+    a2: 'Dice qué criterio o desempate marcó la diferencia.',
+    a3: 'Ofrece la vía de corrección: dónde, en qué plazo y quién responde.',
+    a4: 'Mantiene un tono respetuoso, sin descalificar la duda de la persona.'
+  };
+  var RUTAS = {
+    'laboratorio-1': {
+      e: 'l1', titulo: 'Laboratorio 1 · Individual · 35 min',
+      pasos: [{ n: 'Datos', t: '12 min' }, { n: 'Doña Rosa', t: '8 min' }, { n: 'Trato', t: '12 min' }, { n: 'Cierre', t: '3 min' }]
+    },
+    'laboratorio-2': {
+      e: 'l2', titulo: 'Laboratorio 2 · En parejas · 45 min',
+      pasos: [{ n: 'Caso', t: '2 min' }, { n: 'Regla', t: '8 min' }, { n: 'Instrucciones', t: '8 min' }, { n: 'Comparar', t: '10 min' },
+              { n: 'Revisión', t: '7 min' }, { n: 'Reclamo', t: '8 min' }, { n: 'Compartir', t: '2 min' }]
+    }
+  };
+  var L1 = DATOS.lab1;
+  var CASOS = {};
+  DATOS.casos.forEach(function (c) { CASOS[c.id] = c; });
+
+  /* ---------- Estado y guardado ---------- */
+  function mapa(claves, valor) {
+    var o = {};
+    claves.forEach(function (k) { o[k] = typeof valor === 'function' ? valor(k) : valor; });
+    return o;
+  }
+  function estadoCaso(c) {
+    var codigos = c.filas.map(function (f) { return f[0]; });
+    var cols = c.columnas.map(function (x) { return x.k; }).filter(function (k) { return k !== 'codigo'; });
+    if (c.edadComoMayor) cols.push('mayor');
+    return {
+      orden: '', desempate: '', datos: mapa(cols, false), mayor: false,
+      ra: '', rb: '', elegA: mapa(codigos, false), elegB: mapa(codigos, false),
+      mencA: mapa(c.noCriterio, false), mencB: mapa(c.noCriterio, false),
+      cumpleA: '', cumpleB: '', reglaB: '', verRef: false,
+      revQuien: '', revCuando: '', revCuandoOtro: '', revQue: mapa(Object.keys(REV_QUE), false), revOtros: '',
+      corrDonde: '', corrPlazo: '', corrQuien: '',
+      noExplica: false, respuesta: '', auto: mapa(Object.keys(AUTO), false), q1: '', q2: ''
+    };
+  }
+  function inicial() {
+    var cols = L1.columnas.map(function (x) { return x.k; }).filter(function (k) { return k !== 'codigo'; });
+    return {
+      casoL1: true, casoL2: true,
+      l1: {
+        paso: 1,
+        r1: mapa(L1.campos.map(function (c) { return c.k; }), ''), r1clave: false,
+        r2: { codigo: '', filtros: mapa(L1.reto2.filtros.map(function (f) { return f.k; }), false), quitar: mapa(cols, false), sugerida: false },
+        r3: mapa(L1.reto3.candidatos.map(function (c) { return c.c; }), function () { return { m: '', tipo: '' }; }), r3clave: false
+      },
+      l2: { paso: 1, solo: false, caso: '', c: mapa(DATOS.casos.map(function (c) { return c.id; }), function (id) { return estadoCaso(CASOS[id]); }) }
+    };
+  }
+  function mezclar(base, g) {
+    if (!g || typeof g !== 'object') return base;
+    Object.keys(base).forEach(function (k) {
+      if (base[k] && typeof base[k] === 'object') mezclar(base[k], g[k]);
+      else if (typeof g[k] === typeof base[k]) base[k] = g[k];
+    });
+    return base;
+  }
+  function cargar() {
+    var base = inicial();
+    try {
+      var crudo = window.localStorage.getItem(CLAVE);
+      if (crudo) mezclar(base, JSON.parse(crudo));
+    } catch (e) { /* sin almacenamiento: la página funciona igual */ }
+    if (base.l2.caso && !CASOS[base.l2.caso]) base.l2.caso = '';
+    return base;
+  }
+  function guardar() {
+    try { window.localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) { /* nada */ }
+  }
+  var estado = cargar();
+
+  // "c." apunta a los datos del caso elegido en el laboratorio 2
+  function ruta(r) { return r.indexOf('c.') === 0 ? 'l2.c.' + (estado.l2.caso || '_') + '.' + r.slice(2) : r; }
+  function leer(r) {
+    return ruta(r).split('.').reduce(function (o, k) { return o == null ? undefined : o[k]; }, estado);
+  }
+  function escribir(r, v) {
+    var ks = ruta(r).split('.');
+    var o = estado;
+    for (var i = 0; i < ks.length - 1; i++) { o = o[ks[i]]; if (o == null) return; }
+    o[ks[ks.length - 1]] = v;
+  }
+
+  /* ---------- Utilidades ---------- */
+  function $(id) { return document.getElementById(id); }
+  function crear(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) e.className = clase;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  function todos(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
+  function o(v) { return v && String(v).trim() ? String(v).trim() : '(sin responder)'; }
+  function solo() { return estado.l2.solo; }
+  function t(pareja, uno) { return solo() ? uno : pareja; }
+  function mayus(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function listar(nombres) {
+    if (nombres.length < 2) return nombres.join('');
+    var ultimo = nombres[nombres.length - 1];
+    // "e" antes de palabras que empiezan con sonido "i" (hijos, inscripción), salvo "ie"/"hie"
+    var y = /^h?[ií]/i.test(ultimo) && !/^h?ie/i.test(ultimo) ? ' e ' : ' y ';
+    return nombres.slice(0, -1).join(', ') + y + ultimo;
+  }
+  function icono(est) {
+    var s = crear('span', 'ico est-' + est);
+    s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<svg viewBox="0 0 20 20" focusable="false">' + SVG[est] + '</svg>';
+    return s;
+  }
+  function chip(marca) {
+    var c = crear('span', 'chip-estado est-' + MARCAS[marca].ico);
+    c.appendChild(icono(MARCAS[marca].ico));
+    c.appendChild(document.createTextNode(MARCAS[marca].n));
+    return c;
+  }
+  function radios(nombre, items, clase) {
+    var ops = crear('div', 'opciones' + (clase ? ' ' + clase : ''));
+    items.forEach(function (it) {
+      var lab = crear('label');
+      var inp = crear('input');
+      inp.type = 'radio'; inp.name = nombre; inp.value = it.v;
+      var sp = crear('span', it.ico ? 'est-' + it.ico : '');
+      if (it.ico) sp.appendChild(icono(it.ico));
+      sp.appendChild(document.createTextNode(it.n));
+      lab.appendChild(inp); lab.appendChild(sp);
+      ops.appendChild(lab);
+    });
+    return ops;
+  }
+  function casilla(campo, texto) {
+    var lab = crear('label', 'casilla');
+    var inp = crear('input');
+    inp.type = 'checkbox';
+    inp.dataset.campo = campo;
+    lab.appendChild(inp);
+    lab.appendChild(crear('span', '', texto));
+    return lab;
+  }
+  function tabla(cols, filas, titulo) {
+    var wrap = crear('div', 'tabla-wrap');
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('aria-label', titulo + '. Desliza hacia los lados para ver todas las columnas.');
+    var tb = crear('table');
+    tb.appendChild(crear('caption', 'oculto-visual', titulo));
+    var thead = crear('thead');
+    var tr = crear('tr');
+    cols.forEach(function (c) { var th = crear('th', '', c.n); th.scope = 'col'; tr.appendChild(th); });
+    thead.appendChild(tr);
+    tb.appendChild(thead);
+    var tbody = crear('tbody');
+    filas.forEach(function (f) {
+      var fila = crear('tr');
+      fila.dataset.codigo = f[0];
+      f.forEach(function (v, i) {
+        var cel = crear(i === 0 ? 'th' : 'td', '', v);
+        if (i === 0) cel.scope = 'row';
+        fila.appendChild(cel);
+      });
+      tbody.appendChild(fila);
+    });
+    tb.appendChild(tbody);
+    wrap.appendChild(tb);
+    return wrap;
+  }
+  // Texto para la IA: una fila por persona, con el nombre de cada columna
+  function tablaTexto(cols, filas) {
+    return filas.map(function (f) {
+      return cols.map(function (c, i) { return c.n + ': ' + f[i]; }).join(' | ');
+    }).join('\n');
+  }
+
+  function seleccionar(elem) {
+    try {
+      var det = elem.closest('details');
+      if (det) det.open = true;
+      var r = document.createRange();
+      r.selectNodeContents(elem);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (e) { /* nada */ }
+  }
+  function copiar(texto, fuente, aviso) {
+    function listo() { aviso.textContent = 'Copiado. Ahora pégalo donde lo necesites.'; }
+    function aMano() {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo copiar automáticamente. El texto quedó seleccionado: mantenlo presionado y elige "Copiar" (en computador, Ctrl + C).';
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        var espera = setTimeout(aMano, 1500);
+        navigator.clipboard.writeText(texto).then(
+          function () { clearTimeout(espera); listo(); },
+          function () { clearTimeout(espera); aMano(); }
+        );
+      } else { aMano(); }
+    } catch (e) { aMano(); }
+  }
+  function descargar(texto, nombre, fuente, aviso) {
+    try {
+      var blob = new Blob(['﻿' + texto.replace(/\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = crear('a');
+      a.href = url;
+      a.download = nombre;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      aviso.textContent = 'Se descargó el archivo ' + nombre + '.';
+    } catch (e) {
+      seleccionar(fuente);
+      aviso.textContent = 'No se pudo descargar en este dispositivo. El texto quedó seleccionado para que lo copies.';
+    }
+  }
+  function fecha() {
+    try { return new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return ''; }
+  }
+
+  /* =====================================================================
+     LABORATORIO 1
+     ===================================================================== */
+  (function construirCasoL1() {
+    var z = $('caso-l1-cuerpo');
+    z.appendChild(crear('p', '', L1.caso.texto));
+    var req = crear('p', 'requisitos');
+    req.appendChild(crear('strong', '', 'Requisitos: '));
+    req.appendChild(document.createTextNode(L1.caso.requisitos + ' ' + L1.caso.sinRegla));
+    z.appendChild(req);
+    z.appendChild(crear('p', '', 'Tabla que recibió la IA:'));
+    z.appendChild(tabla(L1.columnas, L1.filas, 'Tabla que recibió la IA'));
+    z.appendChild(crear('p', 'pista-tabla', 'La columna Código queda fija; desliza la tabla para ver el resto.'));
+  })();
+  function nombreColL1(k) { for (var i = 0; i < L1.columnas.length; i++) if (L1.columnas[i].k === k) return L1.columnas[i].n; return k; }
+  function idxL1(k) { for (var i = 0; i < L1.columnas.length; i++) if (L1.columnas[i].k === k) return i; return -1; }
+  function filaL1(codigo) { for (var i = 0; i < L1.filas.length; i++) if (L1.filas[i][0] === codigo) return L1.filas[i]; return null; }
+  function nombreCat(k) { for (var i = 0; i < L1.categorias.length; i++) if (L1.categorias[i].k === k) return L1.categorias[i].n; return ''; }
+
+  // Reto 1
+  L1.campos.forEach(function (c) {
+    var d = crear('div', 'campo-form');
+    var lab = crear('label', '', c.n);
+    lab.htmlFor = 'r1-' + c.k;
+    var sel = crear('select');
+    sel.id = 'r1-' + c.k;
+    sel.dataset.campo = 'l1.r1.' + c.k;
+    sel.appendChild(new Option('Elige para qué sirve', ''));
+    L1.categorias.forEach(function (cat) { sel.appendChild(new Option(cat.n, cat.k)); });
+    d.appendChild(lab); d.appendChild(sel);
+    $('r1-campos').appendChild(d);
+  });
+  function aciertosR1() { return L1.campos.filter(function (c) { return estado.l1.r1[c.k] === c.c; }).length; }
+  function pintarR1() {
+    var hechos = L1.campos.filter(function (c) { return estado.l1.r1[c.k]; }).length;
+    $('r1-conteo').textContent = hechos + ' de ' + L1.campos.length + ' campos clasificados';
+    $('r1-fila-clave').hidden = estado.l1.r1clave;
+    $('r1-clave').hidden = !estado.l1.r1clave;
+    if (!estado.l1.r1clave) return;
+    var ok = aciertosR1();
+    $('r1-puntaje').textContent = 'Acertaste ' + ok + ' de ' + L1.campos.length;
+    var ul = $('r1-lista');
+    ul.textContent = '';
+    var fallos = L1.campos.filter(function (c) { return estado.l1.r1[c.k] !== c.c; });
+    if (!fallos.length) ul.appendChild(crear('li', '', 'Coincidiste con la clave en todos los campos.'));
+    fallos.forEach(function (c) {
+      var li = crear('li');
+      li.appendChild(crear('p', 'que', c.n));
+      var p1 = crear('p');
+      p1.appendChild(document.createTextNode('Tu respuesta: ' + (estado.l1.r1[c.k] ? nombreCat(estado.l1.r1[c.k]) : 'sin clasificar') + '. '));
+      p1.appendChild(crear('span', 'marca no', 'No coincide.'));
+      li.appendChild(p1);
+      var p2 = crear('p');
+      p2.appendChild(crear('strong', '', 'Clave: '));
+      p2.appendChild(document.createTextNode(nombreCat(c.c) + '. ' + c.e));
+      li.appendChild(p2);
+      ul.appendChild(li);
+    });
+  }
+  $('r1-ver-clave').addEventListener('click', function () {
+    estado.l1.r1clave = true;
+    guardar();
+    refrescar();
+    $('r1-puntaje').focus({ preventScroll: true });
+    $('r1-clave').scrollIntoView({ block: 'start' });
+  });
+
+  // Reto 2
+  $('r2-mensaje').textContent = '"' + L1.reto2.mensaje + '"';
+  (function () {
+    var sel = $('r2-codigo');
+    sel.appendChild(new Option('Elige un código', ''));
+    L1.filas.forEach(function (f) { sel.appendChild(new Option(f[0], f[0])); });
+    L1.reto2.filtros.forEach(function (f) { $('r2-filtros').appendChild(casilla('l1.r2.filtros.' + f.k, f.n)); });
+    L1.columnas.forEach(function (c) {
+      if (c.k !== 'codigo') $('r2-quitar').appendChild(casilla('l1.r2.quitar.' + c.k, c.n));
+    });
+    $('r2-tabla').appendChild(tabla(L1.columnas, L1.filas, 'Tabla filtrada'));
+  })();
+  function filasFiltradas() {
+    var activos = L1.reto2.filtros.filter(function (f) { return estado.l1.r2.filtros[f.k]; });
+    return L1.filas.filter(function (fila) {
+      return activos.every(function (f) { return fila[idxL1(f.k)] === f.v; });
+    });
+  }
+  $('r2-ver-sugerida').addEventListener('click', function () {
+    estado.l1.r2.sugerida = !estado.l1.r2.sugerida;
+    guardar();
+    refrescar();
+  });
+  function pintarR2() {
+    var r = estado.l1.r2;
+    var caja = $('r2-respuesta');
+    caja.hidden = !r.codigo;
+    caja.textContent = '';
+    if (r.codigo) {
+      var bien = r.codigo === L1.reto2.correcta;
+      var p = crear('p');
+      p.appendChild(crear('span', 'marca ' + (bien ? 'si' : 'no'), bien ? 'Correcto. ' : 'No es ese. '));
+      p.appendChild(document.createTextNode('Doña Rosa es ' + L1.reto2.correcta + ': la única mujer de San Luis con 52 años y 3 hijos.'));
+      caja.appendChild(p);
+    }
+    $('r2-final').hidden = !r.codigo;
+
+    var quedan = filasFiltradas();
+    var codigos = quedan.map(function (f) { return f[0]; });
+    $('r2-quedan').textContent = quedan.length === L1.filas.length ? 'Sin filtros: se ven las 10 filas.'
+      : (quedan.length === 1 ? 'Queda 1 fila: ' + codigos[0] + '.' : 'Quedan ' + quedan.length + ' filas' + (quedan.length ? ': ' + listar(codigos) + '.' : '.'));
+    todos('#r2-tabla tbody tr').forEach(function (tr) {
+      tr.hidden = codigos.indexOf(tr.dataset.codigo) === -1;
+      tr.classList.toggle('resalta', quedan.length === 1 && !tr.hidden);
+    });
+
+    var b = $('r2-ver-sugerida');
+    b.setAttribute('aria-expanded', r.sugerida ? 'true' : 'false');
+    b.textContent = r.sugerida ? 'Ocultar la respuesta sugerida' : 'Ver la respuesta sugerida';
+    var z = $('r2-sugerida');
+    z.hidden = !r.sugerida;
+    z.textContent = '';
+    if (r.sugerida) {
+      var p1 = crear('p');
+      p1.appendChild(crear('strong', '', 'Respuesta sugerida: '));
+      p1.appendChild(document.createTextNode(listar(L1.reto2.quitar.map(function (k) { return nombreColL1(k).toLowerCase(); })) + '. Ninguna de esas columnas es criterio, y juntas permiten reconocer a alguien.'));
+      z.appendChild(p1);
+      var ul = crear('ul');
+      L1.columnas.forEach(function (c) {
+        if (c.k === 'codigo') return;
+        var marcada = r.quitar[c.k];
+        var sugerida = L1.reto2.quitar.indexOf(c.k) !== -1;
+        var critica = L1.criterios.indexOf(c.k) !== -1;
+        var texto = '', clase = '';
+        if (sugerida && marcada) { texto = 'la quitaste. Bien.'; clase = 'si'; }
+        else if (sugerida) { texto = 'no la quitaste; también conviene quitarla.'; clase = 'medio'; }
+        else if (critica && marcada) { texto = 'la quitaste, pero se necesita para evaluar.'; clase = 'no'; }
+        else return;
+        var li = crear('li');
+        li.appendChild(crear('strong', '', c.n + ': '));
+        li.appendChild(crear('span', 'marca ' + clase, texto));
+        ul.appendChild(li);
+      });
+      z.appendChild(ul);
+    }
+  }
+
+  // Reto 3
+  $('r3-contexto').textContent = L1.reto3.contexto;
+  Object.keys(MARCAS).forEach(function (m) {
+    var li = crear('li');
+    li.appendChild(icono(MARCAS[m].ico));
+    li.appendChild(crear('span', '', MARCAS[m].n));
+    $('r3-leyenda').appendChild(li);
+  });
+  function datosCandidato(codigo) {
+    var f = filaL1(codigo);
+    return {
+      criterios: f[idxL1('nivel')] + ' · ' + f[idxL1('experiencia')] + ' de experiencia · Fines de semana: ' + f[idxL1('fines')] + ' · Prueba: ' + f[idxL1('prueba')],
+      otros: f[idxL1('edad')] + ' años · Sexo ' + f[idxL1('sexo')] + ' · ' + f[idxL1('barrio')] + ' · Estrato ' + f[idxL1('estrato')] + ' · Hijos: ' + f[idxL1('hijos')]
+    };
+  }
+  L1.reto3.candidatos.forEach(function (c) {
+    var base = 'l1.r3.' + c.c;
+    var tj = crear('div', 'tarjeta candidato');
+    tj.setAttribute('role', 'group');
+    tj.setAttribute('aria-labelledby', 'r3-t-' + c.c);
+    var h = crear('h3', '', c.c);
+    h.id = 'r3-t-' + c.c;
+    tj.appendChild(h);
+    tj.appendChild(crear('span', 'etiqueta-res' + (c.elegido ? ' si' : ''), c.res));
+    var d = datosCandidato(c.c);
+    var p1 = crear('p', 'datos-fila');
+    p1.appendChild(crear('b', '', 'Criterios: '));
+    p1.appendChild(document.createTextNode(d.criterios));
+    var p2 = crear('p', 'datos-fila ayuda');
+    p2.appendChild(document.createTextNode('Otros datos: ' + d.otros));
+    tj.appendChild(p1); tj.appendChild(p2);
+    var j = crear('p', 'cita justif', '"' + c.j + '"');
+    tj.appendChild(j);
+    var fs = crear('fieldset');
+    fs.appendChild(crear('legend', '', 'Esta justificación…'));
+    fs.appendChild(radios(base + '.m', Object.keys(MARCAS).map(function (m) { return { v: m, n: MARCAS[m].n, ico: MARCAS[m].ico }; }), 'estados'));
+    tj.appendChild(fs);
+    var ft = crear('fieldset');
+    ft.id = 'r3-tipo-' + c.c;
+    ft.appendChild(crear('legend', '', '¿Qué tipo de sesgo?'));
+    ft.appendChild(radios(base + '.tipo', Object.keys(TIPOS).map(function (k) { return { v: k, n: TIPOS[k] }; })));
+    tj.appendChild(ft);
+    $('r3-candidatos').appendChild(tj);
+  });
+  function aciertoR3(c) {
+    var r = estado.l1.r3[c.c];
+    return r.m === c.clave && (c.clave !== 'nocriterio' || r.tipo === c.tipo);
+  }
+  function pintarR3() {
+    L1.reto3.candidatos.forEach(function (c) {
+      $('r3-tipo-' + c.c).hidden = estado.l1.r3[c.c].m !== 'nocriterio';
+    });
+    $('r3-fila-clave').hidden = estado.l1.r3clave;
+    $('r3-clave').hidden = !estado.l1.r3clave;
+    if (!estado.l1.r3clave) return;
+    var ok = L1.reto3.candidatos.filter(aciertoR3).length;
+    $('r3-puntaje').textContent = 'Acertaste ' + ok + ' de ' + L1.reto3.candidatos.length;
+    var ul = $('r3-lista');
+    ul.textContent = '';
+    L1.reto3.candidatos.forEach(function (c) {
+      var r = estado.l1.r3[c.c];
+      var li = crear('li');
+      li.appendChild(crear('p', 'que', c.c + ' · ' + c.res + ': "' + c.j + '"'));
+      var pc = crear('p');
+      pc.appendChild(chip(c.clave));
+      if (c.tipo) pc.appendChild(document.createTextNode(' (' + TIPOS[c.tipo].toLowerCase() + ')'));
+      pc.appendChild(document.createTextNode(' ' + c.e));
+      li.appendChild(pc);
+      var pt = crear('p');
+      var tuya = r.m ? MARCAS[r.m].n + (r.m === 'nocriterio' ? ' (' + (r.tipo ? TIPOS[r.tipo].toLowerCase() : 'sin tipo') + ')' : '') : 'sin marcar';
+      pt.appendChild(document.createTextNode('Tu respuesta: ' + tuya + '. '));
+      var bien = aciertoR3(c);
+      var medio = !bien && r.m === c.clave;
+      pt.appendChild(crear('span', 'marca ' + (bien ? 'si' : (medio ? 'medio' : 'no')), bien ? 'Acertaste.' : (medio ? 'La marca coincide; el tipo no.' : 'No coincide.')));
+      li.appendChild(pt);
+      ul.appendChild(li);
+    });
+  }
+  $('r3-ver-clave').addEventListener('click', function () {
+    estado.l1.r3clave = true;
+    guardar();
+    refrescar();
+    $('r3-puntaje').focus({ preventScroll: true });
+    $('r3-clave').scrollIntoView({ block: 'start' });
+  });
+
+  // Cierre
+  $('cierre-l1-texto').textContent = L1.cierre.texto;
+  $('cierre-l1-mensaje').textContent = L1.cierre.mensaje;
+  function resumenL1() {
+    var e = estado.l1;
+    var l = ['SESIÓN 4 · LABORATORIO 1: REVISAR EL PROCESO DE LA ESPIGA'];
+    if (fecha()) l.push(fecha());
+    l.push('', 'RETO 1. ¿QUÉ DATOS HACEN FALTA?');
+    L1.campos.forEach(function (c) {
+      var mio = e.r1[c.k];
+      l.push('- ' + c.n + ': ' + (mio ? nombreCat(mio) : '(sin clasificar)') + (mio === c.c ? ' (coincide)' : ' · Clave: ' + nombreCat(c.c)));
+    });
+    l.push('Acerté ' + aciertosR1() + ' de ' + L1.campos.length + '.');
+    l.push('', 'RETO 2. ¿QUIÉN ES DOÑA ROSA?');
+    l.push('Mi respuesta: ' + o(e.r2.codigo) + ' · Correcta: ' + L1.reto2.correcta);
+    var quito = L1.columnas.filter(function (c) { return e.r2.quitar[c.k]; }).map(function (c) { return c.n; });
+    l.push('Columnas que quitaría: ' + (quito.length ? listar(quito) : '(ninguna)'));
+    l.push('Respuesta sugerida: ' + listar(L1.reto2.quitar.map(function (k) { return nombreColL1(k).toLowerCase(); })) + '.');
+    l.push('Cambiar el nombre por un código es seudonimizar, no anonimizar.');
+    l.push('', 'RETO 3. ¿LA IA TRATÓ IGUAL A TODOS?');
+    L1.reto3.candidatos.forEach(function (c) {
+      var r = e.r3[c.c];
+      var tuya = r.m ? MARCAS[r.m].n + (r.m === 'nocriterio' && r.tipo ? ' (' + TIPOS[r.tipo].toLowerCase() + ')' : '') : '(sin marcar)';
+      l.push('- ' + c.c + ' (' + c.res.toLowerCase() + '): ' + tuya + ' · Clave: ' + MARCAS[c.clave].n + (c.tipo ? ' (' + TIPOS[c.tipo].toLowerCase() + ')' : '') + '. ' + c.e);
+    });
+    l.push('Acerté ' + L1.reto3.candidatos.filter(aciertoR3).length + ' de ' + L1.reto3.candidatos.length + '.');
+    l.push('', 'CIERRE', L1.cierre.texto, L1.cierre.mensaje);
+    return l.join('\n');
+  }
+  $('btn-copiar-l1').addEventListener('click', function () { copiar(resumenL1(), $('resumen-l1'), $('estado-l1')); });
+  $('btn-descargar-l1').addEventListener('click', function () {
+    descargar(resumenL1(), 'sesion-4-laboratorio-1.txt', $('resumen-l1'), $('estado-l1'));
+  });
+
+  /* =====================================================================
+     LABORATORIO 2
+     ===================================================================== */
+  DATOS.casos.forEach(function (c) {
+    var lab = crear('label', 'caso-card');
+    var inp = crear('input');
+    inp.type = 'radio'; inp.name = 'l2.caso'; inp.value = c.id;
+    var cu = crear('span', 'cuerpo');
+    cu.appendChild(crear('span', 'rotulo', c.nombre));
+    cu.appendChild(crear('b', '', c.titulo));
+    cu.appendChild(crear('span', '', c.texto));
+    cu.appendChild(crear('span', 'ayuda', 'Requisitos: ' + c.requisitos));
+    cu.appendChild(crear('span', 'elegido', 'Caso elegido'));
+    lab.appendChild(inp); lab.appendChild(cu);
+    $('casos').appendChild(lab);
+  });
+
+  function caso() { return CASOS[estado.l2.caso] || null; }
+  function ec() { return caso() ? estado.l2.c[estado.l2.caso] : null; }
+  function colDe(c, k) {
+    if (k === 'mayor') return { k: 'mayor', n: 'Mayor de edad' };
+    for (var i = 0; i < c.columnas.length; i++) if (c.columnas[i].k === k) return c.columnas[i];
+    return null;
+  }
+  function valor(c, fila, k) {
+    if (k === 'mayor') return Number(fila[c.columnas.map(function (x) { return x.k; }).indexOf('edad')]) >= 18 ? 'Sí' : 'No';
+    return fila[c.columnas.map(function (x) { return x.k; }).indexOf(k)];
+  }
+  // Columnas que se ofrecen en el paso 2, en el orden de la tabla
+  function columnasOfrecidas(c, e) {
+    var l = [];
+    c.columnas.forEach(function (col) {
+      if (col.k === 'codigo') return;
+      if (col.k === 'edad' && c.edadComoMayor && e.mayor) { l.push('mayor'); return; }
+      l.push(col.k);
+    });
+    return l;
+  }
+  function columnasElegidas(c, e) {
+    return ['codigo'].concat(columnasOfrecidas(c, e).filter(function (k) { return e.datos[k]; }));
+  }
+  function necesaria(c, k) { return k === 'mayor' || c.necesarias.indexOf(k) !== -1; }
+  function tablaReducida(c, e) {
+    var ks = columnasElegidas(c, e);
+    var cols = ks.map(function (k) { return colDe(c, k); });
+    var filas = c.filas.map(function (f) { return ks.map(function (k) { return valor(c, f, k); }); });
+    return tablaTexto(cols, filas);
+  }
+  function textoRegla(c, e) {
+    var datos = columnasElegidas(c, e).filter(function (k) { return k !== 'codigo'; }).map(function (k) { return colDe(c, k).n; });
+    return [
+      'Regla para elegir: ' + c.titulo + '. Cupos: ' + c.cupos + '.',
+      'Requisitos: ' + c.requisitos,
+      'Orden entre quienes cumplen: ' + (e.orden.trim() || '(sin definir)'),
+      'Desempate: ' + (e.desempate.trim() || '(sin definir)'),
+      'Datos que se usan: ' + (datos.length ? listar(datos) : '(ninguno marcado)')
+    ].join('\n');
+  }
+  function textoA(c) { return c.instruccionA + '\n\n' + tablaTexto(c.columnas, c.filas); }
+  function textoB(c, e) {
+    return textoRegla(c, e) + '\n\nDatos de las personas:\n' + tablaReducida(c, e) + '\n\n' + DATOS.cierreB;
+  }
+
+  var casoConstruido = null;
+  function construirCaso() {
+    var c = caso();
+    var clave = (c ? c.id : '') + (c && ec().mayor ? '+mayor' : '');
+    if (clave === casoConstruido) return;
+    casoConstruido = clave;
+    document.body.classList.toggle('sin-caso', !c);
+    if (!c) return;
+    var e = ec();
+
+    $('caso-l2-titulo').textContent = 'Ver el caso: ' + c.titulo;
+    var z = $('caso-l2-cuerpo');
+    z.textContent = '';
+    z.appendChild(crear('p', '', c.texto));
+    var req = crear('p', 'requisitos');
+    req.appendChild(crear('strong', '', 'Requisitos: '));
+    req.appendChild(document.createTextNode(c.requisitos + (c.extra ? ' ' + c.extra : '') + ' ' + c.sinRegla));
+    z.appendChild(req);
+    z.appendChild(tabla(c.columnas, c.filas, 'Tabla del caso ' + c.titulo));
+    z.appendChild(crear('p', 'pista-tabla', 'La columna Código queda fija; desliza la tabla para ver el resto.'));
+
+    $('b2-requisitos').textContent = mayus(c.requisitos);
+    var sug = $('b2-sugerencias');
+    sug.textContent = '';
+    c.sugerencias.forEach(function (s) {
+      var li = crear('li');
+      var b = crear('button', 'ficha', s);
+      b.type = 'button';
+      b.dataset.sugerencia = s;
+      li.appendChild(b);
+      sug.appendChild(li);
+    });
+    var dz = $('b2-datos');
+    dz.textContent = '';
+    columnasOfrecidas(c, e).forEach(function (k) {
+      dz.appendChild(casilla('c.datos.' + k, colDe(c, k).n + (k === 'mayor' ? ': Sí/No' : '')));
+    });
+
+    var rz = $('b4-respuestas');
+    rz.textContent = '';
+    ['A', 'B'].forEach(function (L) {
+      var tj = crear('div', 'tarjeta persona');
+      tj.appendChild(crear('span', 'rotulo', 'Respuesta ' + L));
+      var cp = crear('div', 'campo');
+      var lb = crear('label', '', 'Pega la respuesta de la IA a la instrucción ' + (L === 'A' ? 'descuidada (A)' : 'cuidada (B)'));
+      lb.htmlFor = 'b4-r' + L;
+      var ta = crear('textarea', 'alto');
+      ta.id = 'b4-r' + L;
+      ta.dataset.campo = 'c.r' + L.toLowerCase();
+      cp.appendChild(lb); cp.appendChild(ta);
+      tj.appendChild(cp);
+      var f1 = crear('fieldset');
+      f1.appendChild(crear('legend', '', 'Códigos elegidos por ' + L));
+      var g1 = crear('div', 'casillas');
+      c.filas.forEach(function (f) { g1.appendChild(casilla('c.eleg' + L + '.' + f[0], f[0])); });
+      f1.appendChild(g1);
+      tj.appendChild(f1);
+      var f2 = crear('fieldset');
+      f2.appendChild(crear('legend', '', '¿La justificación menciona datos que no son criterios?'));
+      var g2 = crear('div', 'casillas');
+      c.noCriterio.forEach(function (k) { g2.appendChild(casilla('c.menc' + L + '.' + k, colDe(c, k).n)); });
+      f2.appendChild(g2);
+      tj.appendChild(f2);
+      var f3 = crear('fieldset');
+      f3.appendChild(crear('legend', '', '¿Todas las personas elegidas cumplen los requisitos?'));
+      f3.appendChild(radios('c.cumple' + L, [{ v: 'Sí', n: 'Sí' }, { v: 'No', n: 'No' }]));
+      tj.appendChild(f3);
+      if (L === 'B') {
+        var f4 = crear('fieldset');
+        var lg = crear('legend', '', '¿Respetó nuestra regla?');
+        lg.dataset.solo = '¿Respetó mi regla?';
+        f4.appendChild(lg);
+        f4.appendChild(radios('c.reglaB', [{ v: 'Sí', n: 'Sí' }, { v: 'En parte', n: 'En parte' }, { v: 'No', n: 'No' }]));
+        tj.appendChild(f4);
+      }
+      rz.appendChild(tj);
+    });
+
+    var ref = $('b4-ref');
+    ref.textContent = '';
+    var p1 = crear('p');
+    p1.appendChild(crear('strong', '', 'Referencia: '));
+    p1.appendChild(document.createTextNode(c.referencia));
+    var p2 = crear('p');
+    p2.appendChild(crear('strong', '', 'Datos necesarios: '));
+    p2.appendChild(document.createTextNode(c.datosNecesarios));
+    ref.appendChild(p1); ref.appendChild(p2);
+    ref.appendChild(crear('p', 'ayuda', 'Es solo un ejemplo. Con otra regla válida, el resultado puede cambiar.'));
+
+    $('b6-de').textContent = 'Reclamo de ' + c.reclamo.de;
+    $('b6-reclamo').textContent = '"' + c.reclamo.texto + '"';
+    pintarCampos();
+  }
+
+  $('b2-sugerencias').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-sugerencia]');
+    var e = ec();
+    if (!b || !e) return;
+    var s = b.dataset.sugerencia;
+    if (e.orden.toLowerCase().indexOf(s.toLowerCase()) !== -1) return;
+    var actual = e.orden.replace(/[\s;.]+$/, '');
+    e.orden = actual ? actual + '; luego, ' + s.charAt(0).toLowerCase() + s.slice(1) : s;
+    guardar();
+    pintarCampos();
+    refrescar();
+  });
+  $('b2-aviso').addEventListener('click', function (ev) {
+    if (!ev.target.closest('[data-convertir]')) return;
+    var e = ec();
+    e.mayor = true;
+    e.datos.edad = false;
+    e.datos.mayor = true;
+    guardar();
+    refrescar();
+    var nueva = document.querySelector('#b2-datos input[data-campo="c.datos.mayor"]');
+    if (nueva) nueva.focus();
+  });
+  $('b2-copiar').addEventListener('click', function () { copiar(textoRegla(caso(), ec()), $('b2-regla'), $('estado-b2')); });
+  $('b3-copiar-a').addEventListener('click', function () { copiar(textoA(caso()), $('b3-texto-a'), $('estado-b3a')); });
+  $('b3-copiar-b').addEventListener('click', function () { copiar(textoB(caso(), ec()), $('b3-texto-b'), $('estado-b3b')); });
+  $('b4-ver-ref').addEventListener('click', function () {
+    var e = ec();
+    e.verRef = !e.verRef;
+    guardar();
+    refrescar();
+  });
+
+  function cuenta(n) { return n === 1 ? '1 dato' : n + ' datos'; }
+  function menciones(c, e, L) { return c.noCriterio.filter(function (k) { return e['menc' + L][k]; }); }
+  function elegidos(c, e, L) { return c.filas.map(function (f) { return f[0]; }).filter(function (k) { return e['eleg' + L][k]; }); }
+
+  function pintarL2() {
+    construirCaso();
+    var c = caso(), e = ec();
+    if (!c) return;
+
+    // Paso 2
+    var innecesarias = columnasOfrecidas(c, e).filter(function (k) { return e.datos[k] && !necesaria(c, k); });
+    var av = $('b2-aviso');
+    av.textContent = '';
+    av.hidden = !innecesarias.length;
+    if (innecesarias.length) {
+      var p = crear('p');
+      p.appendChild(crear('strong', '', listar(innecesarias.map(function (k) { return colDe(c, k).n; })) + '. '));
+      p.appendChild(document.createTextNode(t('¿Este dato se usa en su regla? Si no, puede abrir la puerta al sesgo.', '¿Este dato se usa en tu regla? Si no, puede abrir la puerta al sesgo.')));
+      av.appendChild(p);
+      innecesarias.forEach(function (k) { if (c.notas[k]) av.appendChild(crear('p', '', c.notas[k])); });
+      if (c.edadComoMayor && !e.mayor && innecesarias.indexOf('edad') !== -1) {
+        var b = crear('button', 'boton claro chico', 'Convertir la edad en Mayor de edad: Sí/No');
+        b.type = 'button';
+        b.dataset.convertir = '1';
+        av.appendChild(b);
+      }
+    }
+    $('b2-regla').textContent = textoRegla(c, e);
+
+    // Paso 3
+    $('b3-texto-a').textContent = textoA(c);
+    $('b3-texto-b').textContent = textoB(c, e);
+    var sinDatos = columnasElegidas(c, e).length === 1;
+    $('b3-aviso').hidden = !sinDatos;
+    $('b3-aviso').textContent = sinDatos ? t('Todavía no marcaron datos en el paso 2: la tabla de B solo llevaría los códigos.', 'Todavía no marcaste datos en el paso 2: la tabla de B solo llevaría los códigos.') : '';
+
+    // Paso 4
+    var ma = menciones(c, e, 'A').length, mb = menciones(c, e, 'B').length;
+    $('b4-resumen').textContent = 'A mencionó ' + cuenta(ma) + ' que no son criterios; B mencionó ' + mb + '.';
+    var br = $('b4-ver-ref');
+    br.setAttribute('aria-expanded', e.verRef ? 'true' : 'false');
+    br.textContent = e.verRef ? 'Ocultar la referencia' : 'Ver la referencia';
+    $('b4-ref').hidden = !e.verRef;
+
+    // Paso 5 y 6
+    $('b5-cuando-otro-campo').hidden = e.revCuando !== 'Otro';
+    $('b6-error').hidden = !e.noExplica;
+
+    // Paso 7
+    $('resumen-l2').textContent = resumenL2();
+  }
+
+  function resumenL2() {
+    var c = caso(), e = ec();
+    if (!c) return '';
+    var l = ['SESIÓN 4 · LABORATORIO 2: ¿CÓMO ENTRA EL SESGO?'];
+    if (fecha()) l.push(fecha());
+    l.push(solo() ? 'Trabajé solo: hice los dos papeles, cada uno en una conversación nueva.' : 'Trabajo en pareja.');
+    l.push('Caso: ' + c.nombre + '. ' + c.titulo);
+    l.push('', 'NUESTRA REGLA', textoRegla(c, e));
+    l.push('', 'DECISIONES');
+    ['A', 'B'].forEach(function (L) {
+      var el = elegidos(c, e, L), me = menciones(c, e, L);
+      l.push((L === 'A' ? 'A (instrucción descuidada)' : 'B (instrucción cuidada)') + ': eligió ' + (el.length ? listar(el) : '(sin marcar)') + '.');
+      l.push('   Datos que no son criterios en la justificación: ' + (me.length ? listar(me.map(function (k) { return colDe(c, k).n.toLowerCase(); })) : 'ninguno marcado') + '.');
+      l.push('   ¿Las personas elegidas cumplen los requisitos?: ' + o(e['cumple' + L]));
+      if (L === 'B') l.push('   ¿Respetó la regla?: ' + o(e.reglaB));
+    });
+    l.push('A mencionó ' + cuenta(menciones(c, e, 'A').length) + ' que no son criterios; B mencionó ' + menciones(c, e, 'B').length + '.');
+    l.push('', 'REVISIÓN HUMANA');
+    l.push('Quién revisa: ' + o(e.revQuien));
+    l.push('Cuándo: ' + (e.revCuando === 'Otro' ? o(e.revCuandoOtro) : o(e.revCuando)));
+    var que = Object.keys(REV_QUE).filter(function (k) { return e.revQue[k]; }).map(function (k) { return REV_QUE[k]; });
+    e.revOtros.split('\n').forEach(function (x) { if (x.trim()) que.push(x.trim()); });
+    l.push('Qué revisa:');
+    if (!que.length) l.push('- (sin responder)');
+    que.forEach(function (x) { l.push('- ' + x); });
+    l.push('', 'VÍA DE CORRECCIÓN');
+    l.push('Por dónde reclamar: ' + o(e.corrDonde));
+    l.push('Plazo: ' + o(e.corrPlazo));
+    l.push('Quién responde: ' + o(e.corrQuien));
+    l.push('', 'RESPUESTA AL RECLAMO DE ' + c.reclamo.de);
+    l.push('Reclamo: "' + c.reclamo.texto + '"');
+    if (e.noExplica) l.push('La decisión no se podía explicar con la regla: la respuesta reconoce el error y explica cómo se corrige.');
+    l.push(o(e.respuesta));
+    var auto = Object.keys(AUTO).filter(function (k) { return e.auto[k]; });
+    l.push('Autoverificación (' + auto.length + ' de 4):');
+    Object.keys(AUTO).forEach(function (k) { l.push((e.auto[k] ? '[x] ' : '[ ] ') + AUTO[k]); });
+    l.push('', 'PARA COMPARTIR');
+    l.push('¿Qué diferencias aparecieron entre la instrucción descuidada y la cuidada?', o(e.q1));
+    l.push(t('¿Cómo respondieron el reclamo?', '¿Cómo respondí el reclamo?'), o(e.q2));
+    return l.join('\n');
+  }
+  $('btn-copiar-l2').addEventListener('click', function () { copiar(resumenL2(), $('resumen-l2'), $('estado-l2')); });
+  $('btn-descargar-l2').addEventListener('click', function () {
+    descargar(resumenL2(), 'sesion-4-laboratorio-2.txt', $('resumen-l2'), $('estado-l2'));
+  });
+
+  /* ---------- Del estado a la página y al revés ---------- */
+  function pintarCampos() {
+    todos('[data-campo]').forEach(function (c) {
+      var v = leer(c.dataset.campo);
+      if (c.type === 'checkbox') c.checked = !!v;
+      else if (c.value !== v) c.value = v == null ? '' : v;
+    });
+    todos('input[type="radio"]').forEach(function (r) { r.checked = (r.value === leer(r.name)); });
+  }
+  function pintarModo() {
+    todos('[data-solo]').forEach(function (el) {
+      if (el.dataset.pareja === undefined) el.dataset.pareja = el.textContent;
+      var texto = solo() ? el.dataset.solo : el.dataset.pareja;
+      if (el.textContent !== texto) el.textContent = texto;
+    });
+  }
+  function refrescar() {
+    pintarR1();
+    pintarR2();
+    pintarR3();
+    $('resumen-l1').textContent = resumenL1();
+    pintarL2();
+    pintarModo();
+  }
+  document.addEventListener('input', function (ev) {
+    var c = ev.target;
+    if (!c.dataset || !c.dataset.campo || c.type === 'checkbox') return;
+    escribir(c.dataset.campo, c.value);
+    guardar();
+    refrescar();
+  });
+  document.addEventListener('change', function (ev) {
+    var c = ev.target;
+    if (c.type === 'radio') escribir(c.name, c.value);
+    else if (c.type === 'checkbox' && c.dataset.campo) escribir(c.dataset.campo, c.checked);
+    else if (c.tagName === 'SELECT' && c.dataset.campo) escribir(c.dataset.campo, c.value);
+    else return;
+    guardar();
+    refrescar();
+    if (c.name === 'l2.caso' || c.dataset.campo === 'l2.solo') irA(false);
+  });
+  $('caso-l1').addEventListener('toggle', function () { estado.casoL1 = $('caso-l1').open; guardar(); });
+  $('caso-l2').addEventListener('toggle', function () { estado.casoL2 = $('caso-l2').open; guardar(); });
+
+  /* ---------- Navegación por hash ---------- */
+  var vistas = todos('.vista');
+  var actual = { parte: '', paso: 0 };
+  function leerHash() {
+    var h = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+    if (RUTAS[h]) {
+      var g = estado[RUTAS[h].e].paso;
+      return { parte: h, paso: g >= 1 && g <= RUTAS[h].pasos.length ? g : 1, alias: true };
+    }
+    var m = /^(laboratorio-[12])-paso-(\d)$/.exec(h);
+    if (m && Number(m[2]) >= 1 && Number(m[2]) <= RUTAS[m[1]].pasos.length) return { parte: m[1], paso: Number(m[2]) };
+    return { parte: '', paso: 0 };
+  }
+  function irA(conFoco) {
+    var r = leerHash();
+    if (r.alias) {
+      try { window.history.replaceState(null, '', '#' + r.parte + '-paso-' + r.paso); } catch (e) { /* nada */ }
+    }
+    actual = r;
+    var vista = r.parte ? r.parte + '-paso-' + r.paso : 'inicio';
+    vistas.forEach(function (s) { s.hidden = (s.dataset.vista !== vista); });
+    $('cabecera').hidden = !!r.parte;
+    $('barra').hidden = !r.parte;
+    $('nav').hidden = !r.parte;
+    $('avance').hidden = !r.parte;
+    var l1 = r.parte === 'laboratorio-1', l2 = r.parte === 'laboratorio-2';
+    $('caso-l1').hidden = !l1;
+    $('caso-l2').hidden = !(l2 && r.paso > 1 && caso());
+    if ($('caso-l1').open !== estado.casoL1) $('caso-l1').open = estado.casoL1;
+    if ($('caso-l2').open !== estado.casoL2) $('caso-l2').open = estado.casoL2;
+
+    if (r.parte) {
+      var rt = RUTAS[r.parte];
+      $('barra-titulo').textContent = l2 && solo() ? 'Laboratorio 2 · 45 min' : rt.titulo;
+      var ol = $('nav-pasos');
+      ol.textContent = '';
+      ol.classList.toggle('muchos', rt.pasos.length > 5);
+      rt.pasos.forEach(function (p, i) {
+        var li = crear('li', i + 1 === r.paso ? 'actual' : (i + 1 < r.paso ? 'hecho' : ''));
+        var a = crear('a');
+        a.href = '#' + r.parte + '-paso-' + (i + 1);
+        if (i + 1 === r.paso) a.setAttribute('aria-current', 'step');
+        var num = crear('span', 'num', String(i + 1));
+        num.setAttribute('aria-hidden', 'true');
+        var txt = crear('span', 'txt');
+        var nom = crear('span', 'nom');
+        nom.appendChild(crear('span', 'oculto-visual', (l1 && i < 3 ? 'Reto ' : 'Paso ') + (i + 1) + ': '));
+        nom.appendChild(document.createTextNode(p.n));
+        txt.appendChild(nom);
+        txt.appendChild(crear('span', 'tmp', p.t));
+        a.appendChild(num); a.appendChild(txt);
+        li.appendChild(a);
+        ol.appendChild(li);
+      });
+      $('btn-continuar').hidden = (r.paso === rt.pasos.length);
+      if (estado[rt.e].paso !== r.paso) { estado[rt.e].paso = r.paso; guardar(); }
+    }
+    refrescar();
+    if (conFoco) {
+      window.scrollTo(0, 0);
+      var seccion = document.querySelector('.vista[data-vista="' + vista + '"]');
+      var h = seccion && seccion.querySelector('h2');
+      if (h) h.focus({ preventScroll: true });
+    }
+  }
+  window.addEventListener('hashchange', function () { irA(true); });
+  $('btn-atras').addEventListener('click', function () {
+    window.location.hash = actual.paso > 1 ? '#' + actual.parte + '-paso-' + (actual.paso - 1) : '#inicio';
+  });
+  $('btn-continuar').addEventListener('click', function () {
+    if (actual.parte && actual.paso < RUTAS[actual.parte].pasos.length) {
+      window.location.hash = '#' + actual.parte + '-paso-' + (actual.paso + 1);
+    }
+  });
+
+  $('btn-borrar').addEventListener('click', function () {
+    if (!window.confirm('Se borrarán todas tus respuestas de la sesión 4 en este dispositivo. ¿Quieres continuar?')) return;
+    try { window.localStorage.removeItem(CLAVE); } catch (e) { /* nada */ }
+    estado = inicial();
+    casoConstruido = null;
+    todos('.estado[id^="estado-"]').forEach(function (e) { e.textContent = ''; });
+    pintarCampos();
+    if (window.location.hash === '#inicio') irA(true); else window.location.hash = '#inicio';
+  });
+
+  /* ---------- Arranque ---------- */
+  pintarCampos();
+  irA(false);
+  pintarCampos();
+})();
+</script>
+</body>
+</html>
